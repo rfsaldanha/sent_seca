@@ -2,7 +2,7 @@ library(leaflet)
 library(shiny)
 #source("global.R");
 #setwd("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/")
-load("dados_sent_seca.RData");
+load("dados_sent_seca_v2.RData");
 
 navbarPage("Observatório de Clima e Saúde", id="nav",
   tabPanel("Mapa",
@@ -39,7 +39,7 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
 #            selectize = T
 #          )
           selectInput("cod_ano", label = "Ano",
-                      choices = c(2001:2015), selected = TRUE, multiple = FALSE), 
+                      choices = c(2008:2022), selected = TRUE, multiple = FALSE), 
           selectInput(inputId="cod_mes", label="Mês", choices = c(1:12), selected = TRUE, multiple = FALSE
                       ), width = '100%'
           

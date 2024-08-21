@@ -9,7 +9,7 @@ library(dygraphs);
 library(rpcdas)
 #load("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/dados_sent_seca.RData");
 source("pcdas_token.R", local = TRUE)
-load("dados_sent_seca.RData")
+load("dados_sent_seca_v2.RData")
 
 function(input, output, session) {
   
