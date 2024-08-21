@@ -6,7 +6,8 @@ library(ggplot2);
 library(leaflet);
 library(scales);
 library(dygraphs);
-load("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/dados_sent_seca.RData");
+#load("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/dados_sent_seca.RData");
+load("dados_sent_seca_v2.RData")
 
 function(input, output, session) {
   

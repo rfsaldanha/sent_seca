@@ -1,8 +1,8 @@
 library(leaflet)
 library(shiny)
 #source("global.R");
-setwd("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/")
-load("dados_sent_seca.RData");
+#setwd("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/")
+load("dados_sent_seca_v2.RData");
 
 navbarPage("Observatório de Clima e Saúde", id="nav",
   tabPanel("Mapa",
