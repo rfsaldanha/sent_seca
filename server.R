@@ -34,7 +34,8 @@ function(input, output, session) {
     
     res <- get_text_description(
       df = data_to_ai, 
-      prompt = "Este arquivo json contêm dados de precipitação na região semiárida brasileiral. Escreva um parágrafo técnico em português sobre os dados, incluindo valores. Não mencione o nome do arquivo."
+      prompt = "Este arquivo json contêm dados de precipitação na região semiárida brasileiral. Escreva um parágrafo técnico em português sobre os dados, incluindo valores. Não mencione o nome do arquivo.",
+      pcdas_token = pcdas_token
     )
     
     audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
