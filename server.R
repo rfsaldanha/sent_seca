@@ -32,24 +32,35 @@ function(input, output, session) {
     data_to_ai <- merge(map_data(), subset(df_map, select = c("cod6", "NOME_MUNIC")))
     data_to_ai <- format(data_to_ai, decimal.mark = ",")
     
-    res <- get_text_description(
-      df = data_to_ai, 
-      prompt = "Este arquivo json contêm dados de precipitação na região semiárida brasileiral. Escreva um parágrafo técnico em português sobre os dados, incluindo valores. Não mencione o nome do arquivo.",
-      pcdas_token = pcdas_token
-    )
-    
-    audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
-    get_audio_description(text = res, dest_file = audio_summary_file, pcdas_token = pcdas_token)
-    
-    remove_modal_spinner()
-    
-    showModal(modalDialog(
-      title = "PCDaS AI",
-      res, br(),
-      tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA),
-      tags$img(src = "logo-principal-hires.png"),
-      footer = modalButton("Fechar")
-    ))
+    tryCatch({
+      res <- get_text_description(
+        df = data_to_ai, 
+        prompt = "Este arquivo json contêm dados de precipitação na região semiárida brasileiral. Escreva um parágrafo técnico em português sobre os dados, incluindo valores. Não mencione o nome do arquivo.",
+        pcdas_token = pcdas_token
+      )
+      
+      audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
+      get_audio_description(text = res, dest_file = audio_summary_file, pcdas_token = pcdas_token)
+      
+      remove_modal_spinner()
+      
+      showModal(modalDialog(
+        title = "PCDaS AI",
+        res, br(),
+        tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA),
+        tags$img(src = "logo-principal-hires.png"),
+        footer = modalButton("Fechar")
+      ))
+      
+    }, error = function(e){
+      remove_modal_spinner()
+      
+      showModal(modalDialog(
+        title = "PCDaS AI",
+        "Ocorreu um erro. Tente novamente.", br(),
+        footer = modalButton("Fechar")
+      ))
+    })
   })
   
   
