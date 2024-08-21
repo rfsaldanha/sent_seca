@@ -2,7 +2,7 @@ library(leaflet)
 library(shiny)
 #source("global.R");
 #setwd("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/")
-load("dados_sent_seca_v2.RData");
+load("dados_sent_seca.RData");
 
 navbarPage("Observatório de Clima e Saúde", id="nav",
   tabPanel("Mapa",
@@ -115,6 +115,7 @@ tabPanel("Gráfico segundo ano",
              # Output: Header + summary of distribution ----
              h4("Resumo: Variável no ano"),
              verbatimTextOutput("summary"),
+             uiOutput("summary_audio"),
              
              # Output: Header + table of distribution ----
              h4("Observações"),

@@ -6,8 +6,10 @@ library(ggplot2);
 library(leaflet);
 library(scales);
 library(dygraphs);
+library(rpcdas)
 #load("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/dados_sent_seca.RData");
-load("dados_sent_seca_v2.RData")
+source("pcdas_token.R", local = TRUE)
+load("dados_sent_seca.RData")
 
 function(input, output, session) {
   
@@ -2168,41 +2170,58 @@ rm(tmp)
   #  })
     
     # Generate a summary of the dataset ----
+    
+    dataset <- datasetInput();
+    if(is.null(var_munic_sel)|is.null(dataset)){
+      return()
+    }
+    
+    
+    chuva<-as.numeric(tab1[tab1$cod6==var_munic_sel,
+                           as.character(c(paste0(input$cod_ano,"01"):paste0(input$cod_ano,"12")))]);
+    
+    agravo<-dataset$valor[dataset$cod_munic==var_munic_sel];
+    
+    t_cor<-NA;
+    try(expr = t_cor<-cor.test(x = agravo,y = chuva, method = c("spearman"), 
+                               conf.level = 0.95), silent = T);
+    teste_l<-as.numeric(substr(t_cor$p.value,1,5))
+    
+    if(is.na(teste_l)){
+      texto_resul<-paste("...");
+    }else{
+      texto_resul<-paste("Pela correlação de Spearman",
+                         "com nível de confiança de 95%",
+                         "obtem-se uma correlação de",
+                         substr(t_cor$estimate,1,5),"\ncom p-valor de",substr(t_cor$p.value,1,4),
+                         if(!teste_l <= 0.05){
+                           ", logo, sugeri-se o descarte de uma correlação significativa." }
+                         else{
+                           paste(", logo, sugeri-se que exista uma correlação significativa."
+                           )});
+    }
+    
     output$summary <- renderPrint({
-      
-      dataset <- datasetInput();
-      if(is.null(var_munic_sel)|is.null(dataset)){
-        return()
-      }
-      
-      
-      chuva<-as.numeric(tab1[tab1$cod6==var_munic_sel,
-                             as.character(c(paste0(input$cod_ano,"01"):paste0(input$cod_ano,"12")))]);
-      
-      agravo<-dataset$valor[dataset$cod_munic==var_munic_sel];
-      
-      t_cor<-NA;
-      try(expr = t_cor<-cor.test(x = agravo,y = chuva, method = c("spearman"), 
-                                 conf.level = 0.95), silent = T);
-      teste_l<-as.numeric(substr(t_cor$p.value,1,5))
-      
-      if(is.na(teste_l)){
-        texto_resul<-paste("...");
-      }else{
-        texto_resul<-paste("Pela correlação de Spearman",
-                           "com nível de confiança de 95%",
-                           "obtem-se uma correlação de",
-                           substr(t_cor$estimate,1,5),"\ncom p-valor de",substr(t_cor$p.value,1,4),
-                           if(!teste_l <= 0.05){
-                             ", logo, sugeri-se o descarte de uma correlação significativa." }
-                           else{
-                             paste(", logo, sugeri-se que exista uma correlação significativa."
-                             )});
-      }
       
       cat(texto_resul);
       
     })#FIM SUMMARY
+    
+    ## Audio summary
+    observeEvent(req(datasetInput()), {
+      
+      message(texto_resul)
+      
+      audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
+      get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
+      
+      message(audio_summary_file)
+    
+      
+      output$summary_audio <- renderUI(
+        tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
+      )
+    })
     
     
     output$view <- renderTable({
