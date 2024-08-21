@@ -2,7 +2,7 @@ library(leaflet)
 library(shiny)
 #source("global.R");
 #setwd("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/")
-load("dados_sent_seca_v2.RData");
+load("dados_sent_seca.RData");
 
 navbarPage("Observatório de Clima e Saúde", id="nav",
   tabPanel("Mapa",
@@ -23,6 +23,7 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
         h2("Saúde do Semiárido"),
         helpText("Nota: Selecione um município",
                  "para visualização na aba de gráfico."),
+        actionButton("map_pcdasai", "PCDaS AI"),
       #  h5("Município selecionado:", verbatimTextOutput("munic_sel")),
         selectInput('munic_sel', '', 
                     c("",paste(geo$cod6,as.character(geo$NOME_MUNIC),'/', geo$SIGLA)), 
@@ -39,7 +40,7 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
 #            selectize = T
 #          )
           selectInput("cod_ano", label = "Ano",
-                      choices = c(2008:2022), selected = TRUE, multiple = FALSE), 
+                      choices = c(2001:2015), selected = TRUE, multiple = FALSE), 
           selectInput(inputId="cod_mes", label="Mês", choices = c(1:12), selected = TRUE, multiple = FALSE
                       ), width = '100%'
           
@@ -114,6 +115,7 @@ tabPanel("Gráfico segundo ano",
              
              # Output: Header + summary of distribution ----
              h4("Resumo: Variável no ano"),
+             verbatimTextOutput("summary_ai"),
              verbatimTextOutput("summary"),
              uiOutput("summary_audio"),
              

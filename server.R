@@ -7,14 +7,52 @@ library(leaflet);
 library(scales);
 library(dygraphs);
 library(rpcdas)
+library(shinybusy)
 #load("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/dados_sent_seca.RData");
 source("pcdas_token.R", local = TRUE)
-load("dados_sent_seca_v2.RData")
+load("dados_sent_seca.RData")
 
 function(input, output, session) {
   
   
   ## Interactive Map ###########################################
+  
+  # Map data
+  map_data <- reactive({
+    this_time <- paste0(input$cod_ano,ifelse(nchar(input$cod_mes)==1,paste0("0",input$cod_mes),input$cod_mes))
+    df_map <- as.data.frame(this_map)
+    res <- this_map[,c("cod6", this_time)]
+    res <- sf::st_drop_geometry(res)
+  })
+  #observe(print(head(map_data())))
+  
+  observeEvent(input$map_pcdasai, {
+    show_modal_spinner()
+    
+    data_to_ai <- merge(map_data(), subset(df_map, select = c("cod6", "NOME_MUNIC")))
+    data_to_ai <- format(data_to_ai, decimal.mark = ",")
+    
+    res <- get_text_description(
+      df = data_to_ai, 
+      prompt = "Este arquivo json contêm dados de precipitação na região semiárida brasileiral. Escreva um parágrafo técnico em português sobre os dados, incluindo valores. Não mencione o nome do arquivo."
+    )
+    
+    audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
+    get_audio_description(text = res, dest_file = audio_summary_file, pcdas_token = pcdas_token)
+    
+    remove_modal_spinner()
+    
+    showModal(modalDialog(
+      title = "PCDaS AI",
+      res, br(),
+      tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA),
+      tags$img(src = "logo-principal-hires.png"),
+      footer = modalButton("Fechar")
+    ))
+  })
+  
+  
+  
   # Create the map
   output$map <- renderLeaflet({
 
@@ -2214,9 +2252,6 @@ rm(tmp)
       
       audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
       get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
-      
-      message(audio_summary_file)
-    
       
       output$summary_audio <- renderUI(
         tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
