@@ -5,13 +5,15 @@ library(shiny)
 load("dados_sent_seca.RData");
 
 navbarPage("Observatório de Clima e Saúde", id="nav",
+  tags$body(includeScript("libras.js")),
   tabPanel("Mapa",
     div(class="outer",
 
       tags$head(
         # Include our custom CSS
         includeCSS("styles.css"),
-        includeScript("gomap.js")
+        includeScript("gomap.js"),
+        
       ),
 
       leafletOutput("map", width="100%", height="100%"),
@@ -137,10 +139,11 @@ HTML("<BR><BR>"),
  dygraphs::dygraphOutput("plot_g2.3"),
 HTML("<BR><BR>"),
 h4("Síntese dos indicadores"),
- dygraphs::dygraphOutput("plot_g2")
+ dygraphs::dygraphOutput("plot_g2"),
 # h4("Matriz do diagrama de dispersão"),
 # plotOutput("plot_g3",width = "100%", height = "600px")
-  )
+)
+
 )
 
 
