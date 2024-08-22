@@ -1,5 +1,6 @@
 library(leaflet)
 library(shiny)
+library(shinybusy)
 #source("global.R");
 #setwd("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/")
 load("dados_sent_seca.RData");
