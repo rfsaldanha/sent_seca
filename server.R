@@ -24,8 +24,7 @@ function(input, output, session) {
     res <- this_map[,c("cod6", this_time)]
     res <- sf::st_drop_geometry(res)
   })
-  #observe(print(head(map_data())))
-  
+
   observeEvent(input$map_pcdasai, {
     show_modal_spinner()
     
