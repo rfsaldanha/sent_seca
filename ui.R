@@ -73,7 +73,6 @@ tabPanel("Gráfico segundo ano",
            
            # Sidebar panel for inputs ----
            sidebarPanel(
-             
              # Input: Select a dataset ----
              selectInput("dataset", "Selecione um indicador:",
                          choices = c("","Internação Diarréia e Gastroenterite Origem Infecção Presumível", 
@@ -100,8 +99,6 @@ tabPanel("Gráfico segundo ano",
              helpText("Nota: A seleção temporal do gráfico é realizada na",
                       "aba 'Mapas'",
                       ""),
-         
-                 
              # Input: actionButton() to defer the rendering of output ----
              # until the user explicitly clicks the button (rather than
              # doing it immediately when inputs change). This is useful if
@@ -113,13 +110,9 @@ tabPanel("Gráfico segundo ano",
            # Main panel for displaying outputs ----
            mainPanel(
              h4("Município selecionado:",     verbatimTextOutput("munic_sel_2")),
-            
-             
-    
              
              dygraphs::dygraphOutput("plot_g1"),
              #verbatimTextOutput("info"),
-             
              
              # Output: Header + summary of distribution ----
              h4("Resumo: Variável no ano"),
@@ -135,21 +128,18 @@ tabPanel("Gráfico segundo ano",
          )
       ),
   tabPanel("Séries e Tendências",
- h4("Precipitação média acumulada"),
- dygraphs::dygraphOutput("plot_g2.1"),
-HTML("<BR><BR>"),
- h4("Condição da vegetação (NDVI)"),
- dygraphs::dygraphOutput("plot_g2.2"),
-HTML("<BR><BR>"),
- h4("Indicador de saúde",  verbatimTextOutput("dataset")),
- dygraphs::dygraphOutput("plot_g2.3"),
-HTML("<BR><BR>"),
-h4("Síntese dos indicadores"),
- dygraphs::dygraphOutput("plot_g2"),
-# h4("Matriz do diagrama de dispersão"),
-# plotOutput("plot_g3",width = "100%", height = "600px")
-)
-
+     h4("Precipitação média acumulada"),
+     dygraphs::dygraphOutput("plot_g2.1"),
+     HTML("<BR><BR>"),
+     h4("Condição da vegetação (NDVI)"),
+     dygraphs::dygraphOutput("plot_g2.2"),
+     HTML("<BR><BR>"),
+     h4("Indicador de saúde",  verbatimTextOutput("dataset")),
+     dygraphs::dygraphOutput("plot_g2.3"),
+     HTML("<BR><BR>"),
+     h4("Síntese dos indicadores"),
+     dygraphs::dygraphOutput("plot_g2")
+  )
 )
 
 
