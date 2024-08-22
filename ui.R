@@ -7,13 +7,15 @@ load("dados_sent_seca.RData");
 navbarPage("Observatório de Clima e Saúde", id="nav",
   tags$body(includeScript("libras.js")),
   tabPanel("Mapa",
+    # Spinner for map load
+    add_busy_spinner(spin = "semipolar", margins = c(20,30)),
+    
     div(class="outer",
 
       tags$head(
         # Include our custom CSS
         includeCSS("styles.css"),
-        includeScript("gomap.js"),
-        
+        includeScript("gomap.js")
       ),
 
       leafletOutput("map", width="100%", height="100%"),
@@ -21,16 +23,10 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
       # Shiny versions prior to 0.11 should use class="modal" instead.
       absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
         draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
-        width = 330, height = "auto",
+        width = 630, height = "auto",
         h2("Saúde do Semiárido"),
         helpText("Nota: Selecione um município",
                  "para visualização na aba de gráfico."),
-        actionButton("map_pcdasai", "PCDaS AI"),
-      #  h5("Município selecionado:", verbatimTextOutput("munic_sel")),
-        selectInput('munic_sel', '', 
-                    c("",paste(geo$cod6,as.character(geo$NOME_MUNIC),'/', geo$SIGLA)), 
-                    selectize=T),
-          
         sidebarPanel(
             selectInput("cod_map", label = "Índice da seca", choices = c("Precipitação")),
 #          selectInput(
@@ -47,9 +43,18 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
                       ), width = '100%'
           
           ), 
+
+          # AI generated text  
+          uiOutput("map_descr_ia"),
+
+          h5("Município selecionado:", verbatimTextOutput("munic_sel")),
+          selectInput('munic_sel', '', 
+                      c("",paste(geo$cod6,as.character(geo$NOME_MUNIC),'/', geo$SIGLA)), 
+                      selectize=T),
         
-                 plotOutput("histCentile", height = 200),
-                 plotOutput("scatterCollegeIncome", height = 250)
+          # Plots
+          plotOutput("histCentile", height = 200),
+          plotOutput("scatterCollegeIncome", height = 250)
       ),
 
       tags$div(id="cite",

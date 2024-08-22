@@ -24,30 +24,53 @@ function(input, output, session) {
     res <- this_map[,c("cod6", this_time)]
     res <- sf::st_drop_geometry(res)
   })
-
-  observeEvent(input$map_pcdasai, {
-    show_modal_spinner()
+  
+  # Map description by AI
+  map_descr_text <- reactive({
     
-    data_to_ai <- merge(map_data(), subset(df_map, select = c("cod6", "NOME_MUNIC")))
-    data_to_ai <- format(data_to_ai, decimal.mark = ",")
+    data_to_ai <- merge(map_data(), subset(df_map, select = c("cod6", "NOME_MUNIC", "SIGLA")))
+    data_to_ai[,2] <- round(data_to_ai[,2], 2)
+    data_to_ai <- format(data_to_ai, decimal.mark = ",", nsmall = 2)
+    
     
     tryCatch({
       res <- get_text_description(
         df = data_to_ai, 
-        prompt = "Este arquivo json contêm dados de precipitação na região semiárida brasileiral. Escreva um parágrafo técnico em português sobre os dados, incluindo valores. Não mencione o nome do arquivo.",
+        prompt = "Este arquivo json contêm dados de precipitação na região semiárida brasileiral. A variável `NOME_MUNIC` contêm os nomes dos municípios. A variável `SIGLA` contêm os nomes dos estados dos municípios. Escreva um parágrafo técnico em português sobre os dados, incluindo valores e coloque em negrito os nomes dos municípios citados. Não mencione o nome do arquivo. Evite adjetivos como alarmante e preocupante.",
         pcdas_token = pcdas_token
       )
+    }, error = function(e){
+      res <- ""
+    })
+    
+    res
+  })
+  
+  observeEvent(map_descr_text(), {
+    output$map_descr_ia <- renderUI({
+        tagList(
+          tags$html(markdown(map_descr_text())),
+          actionButton("map_descr_audio", label = "Ouvir áudio transcrição"),
+          helpText("PCDaS IA")
+        )
+      })
+  })
+
+  observeEvent(input$map_descr_audio, {
+    show_modal_spinner()
+    
+    tryCatch({
       
       audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
-      get_audio_description(text = res, dest_file = audio_summary_file, pcdas_token = pcdas_token)
+      get_audio_description(text = map_descr_text(), dest_file = audio_summary_file, pcdas_token = pcdas_token)
       
       remove_modal_spinner()
       
       showModal(modalDialog(
-        title = "PCDaS AI",
-        res, br(),
-        tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA),
-        tags$img(src = "logo-principal-hires.png"),
+        title = "PCDaS IA",
+        markdown(map_descr_text()),
+        tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autoplay = NA, controls = NA),
+        # tags$img(src = "logo-principal-hires.png"),
         footer = modalButton("Fechar")
       ))
       
@@ -104,7 +127,7 @@ function(input, output, session) {
                     fillOpacity = .8, 
                     popup=popup,
                     color = leg, layerId =~cod6) %>% 
-	setView(lng = -37.25, lat = -10.33601, zoom = 6) %>%
+	setView(lng = -35, lat = -10.33601, zoom = 6) %>%
 
         addLegend(
           position = 'topleft',
