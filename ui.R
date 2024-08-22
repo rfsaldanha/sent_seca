@@ -47,7 +47,7 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
           # AI generated text  
           uiOutput("map_descr_ia"),
 
-          h5("Município selecionado:", verbatimTextOutput("munic_sel")),
+          # h5("Município selecionado:", verbatimTextOutput("munic_sel")),
           selectInput('munic_sel', '', 
                       c("",paste(geo$cod6,as.character(geo$NOME_MUNIC),'/', geo$SIGLA)), 
                       selectize=T),
