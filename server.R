@@ -81,7 +81,16 @@ function(input, output, session) {
       #560/11
       #
       
-      leg <- qpal(df_map[,this_time]);
+      # Paleta original
+      # leg <- qpal(df_map[,this_time]);
+      
+      # Paleta considerando todos os valores possíveis
+      # prec_pal <- colorNumeric(palette = "BrBG", domain = unique(as.vector(as.matrix(tab1[,2:ncol(tab1)]))))
+      # leg <- prec_pal(df_map[,this_time])
+      
+      # Paleta considerando a variaçào do ano selecionado
+      prec_pal <- colorQuantile(palette = "PiYG", domain = unique(as.vector(as.matrix(tab1[,grepl(input$cod_ano, names(tab1))]))), n = 10)
+      leg <- prec_pal(df_map[,this_time])
       
       #leg <-  c(levels(as.factor(leg)));
       # incProgress(4/5, detail = paste("parte ", 4));
@@ -99,7 +108,10 @@ function(input, output, session) {
 
         addLegend(
           position = 'topleft',
-          colors = c("#2C7BB6","#ABD9E9", "#FFFFBF", "#FDAE61", "#D7191C"),
+          # Cores paleta original
+          # colors = c("#2C7BB6","#ABD9E9", "#FFFFBF", "#FDAE61", "#D7191C"),
+          # Cores paleta PiYG
+          colors = c("#4DAC26","#B8E186", "#F7F7F7", "#F1B6DA", "#D01C8B"),
           labels = c("muito úmido","úmido",
                      "seco","muito seco","extremamente seco"), opacity = 0.5,
           title = 'Precipitação média acumulada'
