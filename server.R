@@ -518,7 +518,7 @@ function(input, output, session) {
         dyOptions(fillAlpha = 0.3) %>%
         dyLimit(as.numeric(54), color = "red") %>%
         dySeries("precipitação", label = "Precipitação",color = "rgb(35, 34, 131)",fillGraph = TRUE) %>%
-        dySeries("trend", label = "Tendência",color = "blue", strokePattern = "dotted",strokeWidth = 3) %>%
+        dySeries("trend", label = "Tendência (STL)",color = "blue", strokePattern = "dotted",strokeWidth = 3) %>%
         #dySeries("p$fitted", label = "SARIMA",color = "darkgreen") %>%
         dySeries(c("p$lower", "p$mean", "p$upper"), label = "Previsão (SARIMA)",color = "purple") %>%
         dyHighlight(highlightCircleSize = 5, 
@@ -538,7 +538,7 @@ function(input, output, session) {
                                     text=as.character(round(out_values[i],0)),
                                     tooltip = "atípico", width = 30, series="Precipitação")
         }
-
+      
       return(g2);
     });
     
@@ -572,7 +572,7 @@ function(input, output, session) {
       trend <- decomp$time.series[, "trend"]
       a <- forecast::auto.arima(ndvi, seasonal = T)
       p <- forecast::forecast(a, h = 24, level=95)
-      p$lower[p$lower<(-1)] <- 0
+      p$lower[p$lower<(-0.1)] <- -0.1
       plot_data <- cbind(ndvi, trend,p$mean,p$lower,p$upper)#,p$fitted
       #browser()
       
@@ -582,7 +582,7 @@ function(input, output, session) {
         dyLimit(as.numeric(0.33), color = "red")%>%
         dyLimit(as.numeric(0.66), color = "green") %>%
         dySeries("ndvi", label = "NDVI",color = "darkgreen",fillGraph = TRUE) %>%
-        dySeries("trend", label = "Tendência",color = "green", strokePattern = "dotted",strokeWidth = 3) %>%
+        dySeries("trend", label = "Tendência (STL)",color = "green", strokePattern = "dotted",strokeWidth = 3) %>%
         #dySeries("p$fitted", label = "SARIMA",color = "darkgreen") %>%
         dySeries(c("p$lower", "p$mean", "p$upper"), label = "Previsão (SARIMA)",color = "brown") %>%
         dyHighlight(highlightCircleSize = 5, 
@@ -633,8 +633,7 @@ function(input, output, session) {
       decomp <- stl(Saúde, s.window = "periodic")
       #plot(decomp)
       trend <- decomp$time.series[, "trend"]
-      na_ts <- ts(rep(NA,24),start=end,frequency=12)
-      plot_data <- cbind(Saúde, trend,na_ts)#,p$fitted
+      plot_data <- cbind(Saúde, trend)#,p$fitted
       #browser()
       
       g2<-dygraph(plot_data, group = "Series&Trend") %>%
@@ -642,8 +641,7 @@ function(input, output, session) {
         dyAxis("x", valueRange = c(start, "2017-12-01")) %>%
         dyOptions(fillAlpha = 0.3) %>%
         dySeries("Saúde", label = "Saúde",color = "rgb(213, 119, 86)",fillGraph = TRUE) %>%
-        dySeries("trend", label = "Tendência",color = "orange", strokePattern = "dotted",strokeWidth = 3) %>%
-        dySeries("na_ts", label = "Previsão (SARIMA)",color = "coral") %>%
+        dySeries("trend", label = "Tendência (STL)",color = "orange", strokePattern = "dotted",strokeWidth = 3) %>%
         dyHighlight(highlightCircleSize = 5, 
                     highlightSeriesBackgroundAlpha = 0.4,
                     hideOnMouseOut = TRUE)

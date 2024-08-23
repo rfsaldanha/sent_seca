@@ -130,18 +130,19 @@ tabPanel("Gráfico segundo ano",
   tabPanel("Séries e Tendências",
      h4("Precipitação média acumulada"),
      dygraphs::dygraphOutput("plot_g2.1"),
-     verbatimTextOutput("summary_g2.1"),
+     verbatimTextOutput("summary_g2.1"), #TODO
      uiOutput("summary_audio_g2.1"),
      HTML("<BR><BR>"),
      h4("Condição da vegetação (NDVI)"),
      dygraphs::dygraphOutput("plot_g2.2"),
-     verbatimTextOutput("summary_g2.2"),
+     verbatimTextOutput("summary_g2.2"), #TODO
      uiOutput("summary_audio_g2.2"),
      HTML("<BR><BR>"),
      h4("Indicador de saúde",  verbatimTextOutput("dataset")),
      dygraphs::dygraphOutput("plot_g2.3"),
-     verbatimTextOutput("summary_g2.3"),
+     verbatimTextOutput("summary_g2.3"), #TODO
      uiOutput("summary_audio_g2.3"),
+     HTML("<BR><BR>"),
   )
 )
 
