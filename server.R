@@ -335,43 +335,6 @@ function(input, output, session) {
         return(g1);
       });
       
-      output$plot_g2<-renderDygraph({
-    
-        dataset<-get(levels(desc_tab$tab[desc_tab$nome==input$dataset]));
-        
-      #  var_munic_sel<-261110
-      #  dataset<-tab3[tab3$cod_munic==var_munic_sel&tab3$fx_etaria==4,]
-        
-        if(is.null(var_munic_sel)|is.null(dataset)){
-          return()
-        }
-        options(digits=10)
-        
-        precipitação<-ts(data = as.numeric(tab1[tab1$cod6==var_munic_sel,-1]), 
-                         start = c(2001,01), end = c(2015,12), frequency = 12);#warning(call. = T);
-        
-        ndvi<-ts(data = as.numeric(tab7$valor[tab7$cod6==var_munic_sel]), 
-                 start = c(2003,01), end = c(2015,12), frequency = 12)
-        
-        Saúde <- ts(data = dataset$valor[dataset$cod_munic==var_munic_sel],
-                    start = c(2001,01), end = c(2015,12), frequency = 12);#warning("Não existe dado para faixa etária selecionada...");
-        
-        dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&!is.na(tab6$dt_portaria)];
-        
-        lungDeaths <- cbind(precipitação, Saúde, ndvi);
-        
-        g2<-dygraph(lungDeaths) %>%
-          #  dyAxis("y", label = "Precipitação") %>%
-          dyAxis("y", label = "log10", logscale = T) %>%
-          dyLimit(as.numeric(54), color = "red")
-        
-        for (i in 1:length(dt.decretos)){
-          g2 <- g2 %>% dyEvent(dt.decretos[i],"Decreto de seca ou estiagem", labelLoc = "bottom")
-        }
-        
-        return(g2);
-      });
-      
       # Generate a summary of the dataset ----
       output$summary <- renderPrint({
         
@@ -516,43 +479,6 @@ function(input, output, session) {
       return(g1);
     });
     
-    output$plot_g2<-renderDygraph({
-      
-      dataset<-get(levels(desc_tab$tab[desc_tab$nome==input$dataset]));
-      
-      #  var_munic_sel<-261110
-      #  dataset<-tab3[tab3$cod_munic==var_munic_sel&tab3$fx_etaria==4,]
-      
-      if(is.null(var_munic_sel)|is.null(dataset)){
-        return()
-      }
-      options(digits=10)
-      
-      precipitação<-ts(data = as.numeric(tab1[tab1$cod6==var_munic_sel,-1]), 
-                       start = c(2001,01), end = c(2015,12), frequency = 12);#warning(call. = T);
-      
-      ndvi<-ts(data = as.numeric(tab7$valor[tab7$cod6==var_munic_sel]), 
-               start = c(2003,01), end = c(2015,12), frequency = 12)
-      
-      Saúde <- ts(data = dataset$valor[dataset$cod_munic==var_munic_sel&dataset$fx_etaria==input$cod_idade],
-                  start = c(2001,01), end = c(2015,12), frequency = 12);#warning("Não existe dado para faixa etária selecionada...");
-      
-      dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&!is.na(tab6$dt_portaria)];
-      
-      lungDeaths <- cbind(precipitação, Saúde, ndvi);
-      
-      g2<-dygraph(lungDeaths,group = "Series&Trend") %>%
-        #  dyAxis("y", label = "Precipitação") %>%
-        dyAxis("y", label = "log10", logscale = T) %>%
-        dyLimit(as.numeric(54), color = "red")
-      
-      for (i in 1:length(dt.decretos)){
-        g2 <- g2 %>% dyEvent(dt.decretos[i],"Decreto de seca ou estiagem", labelLoc = "bottom")
-      }
-      
-      return(g2);
-    });
-
     #Chuva
     output$plot_g2.1<-renderDygraph({
       
@@ -564,23 +490,58 @@ function(input, output, session) {
       }
       options(digits=10)
       
-      precipitação<-ts(data = as.numeric(tab1[tab1$cod6==var_munic_sel,-1]), 
-                       start = c(2001,01), end = c(2015,12), frequency = 12);#warning(call. = T);
+      mes_i <- colnames(tab1[2])
+      mes_f <- colnames(tab1[length(tab1)])
+      start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
+                 paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
+      end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
+                 paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
+      
+      data <- tab1[tab1$cod6==var_munic_sel,-1]
+        
+      precipitação<-ts(data = as.numeric(data), start = start, end = end, frequency = 12);
+      
       dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&!is.na(tab6$dt_portaria)];
       
-      lungDeaths <- cbind(precipitação);
+      plot_data <- cbind(precipitação);
       
-      g2<-dygraph(lungDeaths, group = "Series&Trend") %>%
-        #  dyAxis("y", label = "Precipitação") %>%
+      decomp <- stl(precipitação, s.window = "periodic")
+      #plot(decomp)
+      trend <- decomp$time.series[, "trend"]
+      a <- forecast::auto.arima(precipitação, seasonal = T)
+      p <- forecast::forecast(a, h = 24, level=95)
+      p$lower[p$lower<0] <- 0
+      plot_data <- cbind(precipitação, trend,p$mean,p$lower,p$upper)#,p$fitted
+      #browser()
+      g2<-dygraph(plot_data, group = "Series&Trend") %>%
         dyAxis("y", label = "mm/mês", logscale = F) %>%
-        dyLimit(as.numeric(54), color = "red")
-      
+        dyOptions(fillAlpha = 0.3) %>%
+        dyLimit(as.numeric(54), color = "red") %>%
+        dySeries("precipitação", label = "Precipitação",color = "rgb(35, 34, 131)",fillGraph = TRUE) %>%
+        dySeries("trend", label = "Tendência",color = "blue", strokePattern = "dotted",strokeWidth = 3) %>%
+        #dySeries("p$fitted", label = "SARIMA",color = "darkgreen") %>%
+        dySeries(c("p$lower", "p$mean", "p$upper"), label = "Previsão (SARIMA)",color = "purple") %>%
+        dyHighlight(highlightCircleSize = 5, 
+                    highlightSeriesBackgroundAlpha = 0.4,
+                    hideOnMouseOut = TRUE)
+
       for (i in 1:length(dt.decretos)){
         g2 <- g2 %>% dyEvent(dt.decretos[i],"Decreto de seca ou estiagem", labelLoc = "bottom")
       }
       
+      out_values <- boxplot(t(data), plot=FALSE)$out
+      out_i <- which(t(data)%in%out_values)
+      out <- as.Date(paste0(colnames(data[,out_i]), "01"), format = "%Y%m%d")
+      if(length(out)>0)
+        for (i in 1:length(out)){
+          g2 <- g2 %>% dyAnnotation(out[i], 
+                                    text=as.character(round(out_values[i],0)),
+                                    tooltip = "atípico", width = 30, series="Precipitação")
+        }
+
       return(g2);
     });
+    
     #NDVI
     output$plot_g2.2<-renderDygraph({
       
@@ -590,65 +551,127 @@ function(input, output, session) {
       }
       options(digits=10)
       
-      ndvi<-ts(data = as.numeric(tab7$valor[tab7$cod6==var_munic_sel]), 
-               start = c(2003,01), end = c(2015,12), frequency = 12)
+      data <- tab7[tab7$cod6==var_munic_sel,-1]
       
+      mes_i <- min(data$tempo)
+      mes_f <- max(data$tempo)
+      start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
+                 paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
+      end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
+               paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
+      
+
+      ndvi <-ts(data = as.numeric(data$valor), start = start, end = end, frequency = 12);
       
       dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&!is.na(tab6$dt_portaria)];
       
-      lungDeaths <- cbind(ndvi);
+      plot_data <- cbind(ndvi);
       
-      g2<-dygraph(lungDeaths, group = "Series&Trend") %>%
-        #  dyAxis("y", label = "Precipitação") %>%
+      decomp <- stl(ndvi, s.window = "periodic")
+      #plot(decomp)
+      trend <- decomp$time.series[, "trend"]
+      a <- forecast::auto.arima(ndvi, seasonal = T)
+      p <- forecast::forecast(a, h = 24, level=95)
+      p$lower[p$lower<(-1)] <- 0
+      plot_data <- cbind(ndvi, trend,p$mean,p$lower,p$upper)#,p$fitted
+      #browser()
+      
+      g2<-dygraph(plot_data, group = "Series&Trend") %>%
         dyAxis("y", label = "Condição da vegetação (NDVI)", logscale = F) %>%
+        dyOptions(fillAlpha = 0.3) %>%
         dyLimit(as.numeric(0.33), color = "red")%>%
-        dyLimit(as.numeric(0.66), color = "green")
+        dyLimit(as.numeric(0.66), color = "green") %>%
+        dySeries("ndvi", label = "NDVI",color = "darkgreen",fillGraph = TRUE) %>%
+        dySeries("trend", label = "Tendência",color = "green", strokePattern = "dotted",strokeWidth = 3) %>%
+        #dySeries("p$fitted", label = "SARIMA",color = "darkgreen") %>%
+        dySeries(c("p$lower", "p$mean", "p$upper"), label = "Previsão (SARIMA)",color = "brown") %>%
+        dyHighlight(highlightCircleSize = 5, 
+                    highlightSeriesBackgroundAlpha = 0.4,
+                    hideOnMouseOut = TRUE)
       
       for (i in 1:length(dt.decretos)){
         g2 <- g2 %>% dyEvent(dt.decretos[i],"Decreto de seca ou estiagem", labelLoc = "bottom")
       }
+      #browser()
+      out_values <- boxplot(data$valor, plot=FALSE)$out
+      out_i <- which(data$valor%in%out_values)
+      out <- as.Date(paste0(data$tempo[out_i], "01"), format = "%Y%m%d")
+      if(length(out)>0)
+        for (i in 1:length(out)){
+          g2 <- g2 %>% dyAnnotation(out[i], 
+                                    text=as.character(round(out_values[i],0)),
+                                    tooltip = "atípico", width = 30, series="NDVI")
+        }
       
       return(g2);
     });
     #saúde
     output$plot_g2.3<-renderDygraph({
       
-      dataset<-get(levels(desc_tab$tab[desc_tab$nome==input$dataset]));
+      dataset<-get(as.character(desc_tab$tab[desc_tab$nome==input$dataset]));
       
       if(is.null(var_munic_sel)|is.null(dataset)){
         return()
       }
       options(digits=10)
       
-      Saúde <- ts(data = dataset$valor[dataset$cod_munic==var_munic_sel&dataset$fx_etaria==input$cod_idade],
-                  start = c(2001,01), end = c(2015,12), frequency = 12);#warning("Não existe dado para faixa etária selecionada...");
+      data <- dataset[dataset$cod_munic==var_munic_sel&dataset$fx_etaria==input$cod_idade,]
+      
+      mes_i <- min(data$anomes)
+      mes_f <- max(data$anomes)
+      start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
+                 paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
+      end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
+               paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
+      
+      Saúde <- ts(data = as.numeric(data$valor), start = start, end = end, frequency = 12);      
       
       dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&!is.na(tab6$dt_portaria)];
       
-      lungDeaths <- cbind(Saúde);
+      plot_data <- cbind(Saúde);
       
-      g2<-dygraph(lungDeaths, main = input$dataset, group = "Series&Trend") %>%
-        #  dyAxis("y", label = "Precipitação") %>%
-        dyAxis("y", label = "Taxa por 100 Mil", logscale = F)
+      decomp <- stl(Saúde, s.window = "periodic")
+      #plot(decomp)
+      trend <- decomp$time.series[, "trend"]
+      na_ts <- ts(rep(NA,24),start=end,frequency=12)
+      plot_data <- cbind(Saúde, trend,na_ts)#,p$fitted
+      #browser()
+      
+      g2<-dygraph(plot_data, group = "Series&Trend") %>%
+        dyAxis("y", label = "Taxa por 100 Mil", logscale = F) %>%
+        dyAxis("x", valueRange = c(start, "2017-12-01")) %>%
+        dyOptions(fillAlpha = 0.3) %>%
+        dySeries("Saúde", label = "Saúde",color = "rgb(213, 119, 86)",fillGraph = TRUE) %>%
+        dySeries("trend", label = "Tendência",color = "orange", strokePattern = "dotted",strokeWidth = 3) %>%
+        dySeries("na_ts", label = "Previsão (SARIMA)",color = "coral") %>%
+        dyHighlight(highlightCircleSize = 5, 
+                    highlightSeriesBackgroundAlpha = 0.4,
+                    hideOnMouseOut = TRUE)
       
       for (i in 1:length(dt.decretos)){
         g2 <- g2 %>% dyEvent(dt.decretos[i],"Decreto de seca ou estiagem", labelLoc = "bottom")
       }
+      #browser()
+      out_values <- boxplot(data$valor, plot=FALSE)$out
+      out_i <- which(data$valor%in%out_values)
+      out <- as.Date(paste0(data$anomes[out_i], "01"), format = "%Y%m%d")
+      if(length(out)>0)
+        for (i in 1:length(out)){
+          g2 <- g2 %>% dyAnnotation(out[i], 
+                                    text=as.character(round(out_values[i],0)),
+                                    tooltip = "atípico", width = 30, series="Saúde")
+        }
       
       return(g2);
     });
 
     # Generate a summary of the dataset ----
-    
     dataset <- datasetInput();
     if(is.null(var_munic_sel)|is.null(dataset)){
       return()
     }
-    
-    
     chuva<-as.numeric(tab1[tab1$cod6==var_munic_sel,
                            as.character(c(paste0(input$cod_ano,"01"):paste0(input$cod_ano,"12")))]);
-    
     agravo<-dataset$valor[dataset$cod_munic==var_munic_sel];
     
     t_cor<-NA;
@@ -671,9 +694,7 @@ function(input, output, session) {
     }
     
     output$summary <- renderPrint({
-      
       cat(texto_resul);
-      
     })#FIM SUMMARY
     
     ## Audio summary
