@@ -256,9 +256,8 @@ function(input, output, session) {
     
     bp<- ggplot(tmp, aes(x="", y=Freq, fill = Classe))+
       ggtitle(paste0("Proporção de municípios","\ncom precipitação inferior 54 mm/mês"))+
-      scale_fill_manual(values=c("#D7191C", "#ABD9E9"))+
+      scale_fill_manual(values=c("#FA9E4F", "#96D557"))+
       geom_bar(width = 1, stat = "identity")
-    
     
     pie <- bp + coord_polar("y", start=0)+ theme_minimal()
     pie
