@@ -485,34 +485,15 @@ function(input, output, session) {
       #  var_munic_sel<-261110
       #  dataset<-tab3[tab3$cod_munic==var_munic_sel&tab3$fx_etaria==4,]
       
-      if(is.null(var_munic_sel)|is.null(dataset)){
+      if(is.null(var_munic_sel)){
         return()
       }
       options(digits=10)
-      
-      mes_i <- colnames(tab1[2])
-      mes_f <- colnames(tab1[length(tab1)])
-      start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
-                 paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
-      end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
-                 paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
-      
+      #browser()
       data <- tab1[tab1$cod6==var_munic_sel,-1]
-        
-      precipitação<-ts(data = as.numeric(data), start = start, end = end, frequency = 12);
-      
+      plot_data <- plot_g2.1_data()
       dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&!is.na(tab6$dt_portaria)];
       
-      plot_data <- cbind(precipitação);
-      
-      decomp <- stl(precipitação, s.window = "periodic")
-      #plot(decomp)
-      trend <- decomp$time.series[, "trend"]
-      a <- forecast::auto.arima(precipitação, seasonal = T)
-      p <- forecast::forecast(a, h = 24, level=95)
-      p$lower[p$lower<0] <- 0
-      plot_data <- cbind(precipitação, trend,p$mean,p$lower,p$upper)#,p$fitted
-      #browser()
       g2<-dygraph(plot_data, group = "Series&Trend") %>%
         dyAxis("y", label = "mm/mês", logscale = F) %>%
         dyOptions(fillAlpha = 0.3) %>%
@@ -546,34 +527,15 @@ function(input, output, session) {
     output$plot_g2.2<-renderDygraph({
       
       
-      if(is.null(var_munic_sel)|is.null(dataset)){
+      if(is.null(var_munic_sel)){
         return()
       }
       options(digits=10)
       
       data <- tab7[tab7$cod6==var_munic_sel,-1]
-      
-      mes_i <- min(data$tempo)
-      mes_f <- max(data$tempo)
-      start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
-                 paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
-      end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
-               paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
-      
-
-      ndvi <-ts(data = as.numeric(data$valor), start = start, end = end, frequency = 12);
-      
+      plot_data <- plot_g2.2_data()
       dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&!is.na(tab6$dt_portaria)];
       
-      plot_data <- cbind(ndvi);
-      
-      decomp <- stl(ndvi, s.window = "periodic")
-      #plot(decomp)
-      trend <- decomp$time.series[, "trend"]
-      a <- forecast::auto.arima(ndvi, seasonal = T)
-      p <- forecast::forecast(a, h = 24, level=95)
-      p$lower[p$lower<(-0.1)] <- -0.1
-      plot_data <- cbind(ndvi, trend,p$mean,p$lower,p$upper)#,p$fitted
       #browser()
       
       g2<-dygraph(plot_data, group = "Series&Trend") %>%
@@ -607,33 +569,16 @@ function(input, output, session) {
     });
     #saúde
     output$plot_g2.3<-renderDygraph({
-      
       dataset<-get(as.character(desc_tab$tab[desc_tab$nome==input$dataset]));
       
       if(is.null(var_munic_sel)|is.null(dataset)){
         return()
       }
       options(digits=10)
-      
       data <- dataset[dataset$cod_munic==var_munic_sel&dataset$fx_etaria==input$cod_idade,]
-      
-      mes_i <- min(data$anomes)
-      mes_f <- max(data$anomes)
-      start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
-                 paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
-      end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
-               paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
-      
-      Saúde <- ts(data = as.numeric(data$valor), start = start, end = end, frequency = 12);      
-      
+      plot_data <- plot_g2.3_data()
       dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&!is.na(tab6$dt_portaria)];
       
-      plot_data <- cbind(Saúde);
-      
-      decomp <- stl(Saúde, s.window = "periodic")
-      #plot(decomp)
-      trend <- decomp$time.series[, "trend"]
-      plot_data <- cbind(Saúde, trend)#,p$fitted
       #browser()
       
       g2<-dygraph(plot_data, group = "Series&Trend") %>%
@@ -662,7 +607,143 @@ function(input, output, session) {
       
       return(g2);
     });
-
+    
+    plot_g2.1_data <- reactive({
+      if(is.null(var_munic_sel)){
+        return()
+      }
+      options(digits=10)
+      
+      mes_i <- colnames(tab1[2])
+      mes_f <- colnames(tab1[length(tab1)])
+      start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
+                 paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
+      end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
+               paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
+      
+      data <- tab1[tab1$cod6==var_munic_sel,-1]
+      
+      precipitação<-ts(data = as.numeric(data), start = start, end = end, frequency = 12);
+      
+      plot_data <- cbind(precipitação);
+      
+      decomp <- stl(precipitação, s.window = "periodic")
+      #plot(decomp)
+      trend <- decomp$time.series[, "trend"]
+      a <- forecast::auto.arima(precipitação, seasonal = T)
+      p <- forecast::forecast(a, h = 24, level=95)
+      p$lower[p$lower<0] <- 0
+      plot_data <- cbind(precipitação, trend,p$mean,p$lower,p$upper)#,p$fitted
+      plot_data
+    })
+    
+    plot_g2.2_data <- reactive({
+      if(is.null(var_munic_sel)){
+        return()
+      }
+      options(digits=10)
+      
+      data <- tab7[tab7$cod6==var_munic_sel,-1]
+      
+      mes_i <- min(data$tempo)
+      mes_f <- max(data$tempo)
+      start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
+                 paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
+      end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
+               paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
+      
+      
+      ndvi <-ts(data = as.numeric(data$valor), start = start, end = end, frequency = 12);
+      
+      plot_data <- cbind(ndvi);
+      
+      decomp <- stl(ndvi, s.window = "periodic")
+      #plot(decomp)
+      trend <- decomp$time.series[, "trend"]
+      a <- forecast::auto.arima(ndvi, seasonal = T)
+      p <- forecast::forecast(a, h = 24, level=95)
+      p$lower[p$lower<(-0.1)] <- -0.1
+      plot_data <- cbind(ndvi, trend,p$mean,p$lower,p$upper)#,p$fitted
+      plot_data
+    })
+    
+    plot_g2.3_data <- reactive({
+      dataset<-get(as.character(desc_tab$tab[desc_tab$nome==input$dataset]));
+      
+      if(is.null(var_munic_sel)|is.null(dataset)){
+        return()
+      }
+      options(digits=10)
+      
+      data <- dataset[dataset$cod_munic==var_munic_sel&dataset$fx_etaria==input$cod_idade,]
+      
+      mes_i <- min(data$anomes)
+      mes_f <- max(data$anomes)
+      start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
+                 paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
+      end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
+               paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
+      
+      Saúde <- ts(data = as.numeric(data$valor), start = start, end = end, frequency = 12);      
+      
+      plot_data <- cbind(Saúde);
+      
+      decomp <- stl(Saúde, s.window = "periodic")
+      #plot(decomp)
+      trend <- decomp$time.series[, "trend"]
+      plot_data <- cbind(Saúde, trend)#,p$fitted
+      plot_data
+    })
+    
+    # Plot description by AI
+    plot_g2.1_descr_text <- reactive({
+      
+      plot_data <- plot_g2.1_data()
+      if(is.null(plot_data)) return()
+      
+      #ts to data.frame
+      df_ts <- data.frame(plot_data)
+      df_ts$date <- as.numeric(time(plot_data))
+      df_ts$date <- as.Date(paste0(floor(df_ts$date), "-", 
+                                  sprintf("%02d", 1+round((df_ts$date-floor(df_ts$date))*12)), "-01"))
+      
+      data_to_ai <- cbind(df_ts,
+                          as.data.frame(geo)[geo$cod6==var_munic_sel,c("cod6", "NOME_MUNIC", "SIGLA")])
+      data_to_ai[,1] <- round(data_to_ai[,1], 2)
+      data_to_ai[,2] <- round(data_to_ai[,2], 2)
+      data_to_ai <- format(data_to_ai, decimal.mark = ",", nsmall = 2)
+      #write.csv(data_to_ai,"data_to_ai.csv")
+      
+      tryCatch({
+        res <- get_text_description(
+          df = data_to_ai, 
+          prompt = "Este arquivo csv contém dados de precipitação de um município na região semiárida brasileira. A variável `NOME_MUNIC` contêm o nome do município. A variável `SIGLA` contém o nome do estado do município. A variável `precipitação` contém os valores de precipitação para o município ao longo dos meses contidos na variável `date`. A variável `trend` contém os valores de tendência obtidos pelo método de STL. As variáveis `p$mean` contém os valores de precipitação previstos para os próximos dois anos obtidos pelo modelo SARIMA. Escreva um parágrafo técnico em português do Brasil sobre os dados, incluindo informações sobre a sazonalidade, valores atípicos em determinados meses, máximo, mínimo e média dos valores de precipitação, tendência de longo-prazo crescente ou decrescente, assim como a previsão para os próximos anos, incluindo máximos. Mencione os métodos e modelos utilizados. Coloque em negrito os nomes dos municípios citados. Não mencione o nome do arquivo. Evite adjetivos como alarmante e preocupante.",
+          pcdas_token = pcdas_token
+        )
+      }, error = function(e){
+        res <- ""
+      })
+      
+      res
+    })
+    
+    observeEvent(plot_g2.1_descr_text(), {
+      browser()
+      texto_resul <- plot_g2.1_descr_text()
+      output$plot_g2.1_descr_ia <- renderUI({
+        audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
+        get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
+        
+        tagList(
+          tags$html(markdown(texto_resul)),
+          output$summary_audio <- renderUI(
+            tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
+          ),
+          helpText("PCDaS IA")
+        )
+      })
+    })
+    
     # Generate a summary of the dataset ----
     dataset <- datasetInput();
     if(is.null(var_munic_sel)|is.null(dataset)){
