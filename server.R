@@ -62,7 +62,7 @@ function(input, output, session) {
           # Cores paleta original
           # colors = c("#2C7BB6","#ABD9E9", "#FFFFBF", "#FDAE61", "#D7191C"),
           # Cores paleta PiYG
-          colors = c("#4DAC26","#B8E186", "#F7F7F7", "#F1B6DA", "#D01C8B"),
+          colors = c("#1C8832","#96D557", "#FFFFB2", "#FA9E4F", "#CA0017"),
           labels = c("muito úmido","úmido",
                      "seco","muito seco","extremamente seco"), opacity = 0.5,
           title = 'Precipitação média acumulada'
@@ -187,7 +187,7 @@ function(input, output, session) {
       tagList(
         tags$html(markdown(map_descr_text())),
         actionButton("map_descr_audio", label = "Ouvir áudio transcrição"),
-        helpText("PCDaS IA")
+        tags$img(src = "image_IA_PCDaS.png", width = "170px")
       )
     })
   })
