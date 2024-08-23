@@ -290,12 +290,12 @@ function(input, output, session) {
           geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
           scale_fill_manual(name=this_time, 
                             labels = c("< 54 mm/mês", "> 54 mm/mês"), 
-                            values = c("acima"="#00ba38", "abaixo"="#FDAE61")) + 
+                            values = c("acima"="#96D557", "abaixo"="#FA9E4F")) + 
           labs(subtitle="") + 
           coord_flip()+ theme_minimal() 
           p        
       });
-
+ 
       #Grafico na aba
       output$plot_g1 <- renderDygraph({
         
