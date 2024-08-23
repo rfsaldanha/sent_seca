@@ -235,9 +235,9 @@ function(input, output, session) {
          xlab = "mm/mês",
          ylab = "n",
          xlim = range(df_map[,this_time]),
-         col = '#00DD00',
+         col = '#96D557',
          border = 'white');
-    abline(v = 54, col = "red")
+    abline(v = 54, col = "#CA0017")
   })
   
   ##GRAFICO PIZZA
