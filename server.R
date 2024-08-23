@@ -409,16 +409,40 @@ function(input, output, session) {
         #browser()
         texto_resul <- plot_g1_descr_text()
         output$plot_g1_descr_ia <- renderUI({
+          tagList(
+            tags$html(markdown(texto_resul)),
+            actionButton("plot_g1_audio", label = "Ouvir áudio transcrição"),
+            tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+          )
+        })
+      })
+      
+      observeEvent(input$plot_g1_audio, {
+        show_modal_spinner()
+        texto_resul <- plot_g1_descr_text()
+        tryCatch({
+          
           audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
           get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
           
-          tagList(
-            tags$html(markdown(texto_resul)),
-            output$summary_audio <- renderUI(
-              tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA),
-              tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
-            ),
-          )
+          remove_modal_spinner()
+          
+          showModal(modalDialog(
+            title = "PCDaS IA",
+            markdown(texto_resul),
+            tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autoplay = "0", controls = NA),
+            tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+            footer = modalButton("Fechar")
+          ))
+          
+        }, error = function(e){
+          remove_modal_spinner()
+          
+          showModal(modalDialog(
+            title = "PCDaS AI",
+            "Ocorreu um erro. Tente novamente.", br(),
+            footer = modalButton("Fechar")
+          ))
         })
       })
       
@@ -820,20 +844,57 @@ function(input, output, session) {
       res
     })
     
+    # observeEvent(plot_g1_descr_text(), {
+    #   
+    #   output$plot_g1_descr_ia <- renderUI({
+    #     tagList(
+    #       tags$html(markdown(texto_resul)),
+    #       output$summary_audio <- renderUI(
+    #         tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
+    #       ),
+    #       tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
+    #     )
+    #   })
+    # })
+    
     observeEvent(plot_g1_descr_text(), {
       #browser()
       texto_resul <- plot_g1_descr_text()
       output$plot_g1_descr_ia <- renderUI({
+        tagList(
+          tags$html(markdown(texto_resul)),
+          actionButton("plot_g1_audio", label = "Ouvir áudio transcrição"),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+        )
+      })
+    })
+    
+    observeEvent(input$plot_g1_audio, {
+      show_modal_spinner()
+      texto_resul <- plot_g1_descr_text()
+      tryCatch({
+        
         audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
         get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
         
-        tagList(
-          tags$html(markdown(texto_resul)),
-          output$summary_audio <- renderUI(
-            tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
-          ),
-          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
-        )
+        remove_modal_spinner()
+        
+        showModal(modalDialog(
+          title = "PCDaS IA",
+          markdown(texto_resul),
+          tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autoplay = "0", controls = NA),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+          footer = modalButton("Fechar")
+        ))
+        
+      }, error = function(e){
+        remove_modal_spinner()
+        
+        showModal(modalDialog(
+          title = "PCDaS AI",
+          "Ocorreu um erro. Tente novamente.", br(),
+          footer = modalButton("Fechar")
+        ))
       })
     })
     
@@ -873,16 +934,40 @@ function(input, output, session) {
       #browser()
       texto_resul <- plot_g2.1_descr_text()
       output$plot_g2.1_descr_ia <- renderUI({
+        tagList(
+          tags$html(markdown(texto_resul)),
+          actionButton("plot_g2.1_audio", label = "Ouvir áudio transcrição"),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+        )
+      })
+    })
+    
+    observeEvent(input$plot_g2.1_audio, {
+      show_modal_spinner()
+      texto_resul <- plot_g2.1_descr_text()
+      tryCatch({
+        
         audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
         get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
         
-        tagList(
-          tags$html(markdown(texto_resul)),
-          output$summary_audio <- renderUI(
-            tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
-          ),
-          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
-        )
+        remove_modal_spinner()
+        
+        showModal(modalDialog(
+          title = "PCDaS IA",
+          markdown(texto_resul),
+          tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autoplay = "0", controls = NA),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+          footer = modalButton("Fechar")
+        ))
+        
+      }, error = function(e){
+        remove_modal_spinner()
+        
+        showModal(modalDialog(
+          title = "PCDaS AI",
+          "Ocorreu um erro. Tente novamente.", br(),
+          footer = modalButton("Fechar")
+        ))
       })
     })
     
@@ -922,16 +1007,40 @@ function(input, output, session) {
       #browser()
       texto_resul <- plot_g2.2_descr_text()
       output$plot_g2.2_descr_ia <- renderUI({
+        tagList(
+          tags$html(markdown(texto_resul)),
+          actionButton("plot_g2.2_audio", label = "Ouvir áudio transcrição"),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+        )
+      })
+    })
+    
+    observeEvent(input$plot_g2.2_audio, {
+      show_modal_spinner()
+      texto_resul <- plot_g2.2_descr_text()
+      tryCatch({
+        
         audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
         get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
         
-        tagList(
-          tags$html(markdown(texto_resul)),
-          output$summary_audio <- renderUI(
-            tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
-          ),
-          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
-        )
+        remove_modal_spinner()
+        
+        showModal(modalDialog(
+          title = "PCDaS IA",
+          markdown(texto_resul),
+          tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autoplay = "0", controls = NA),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+          footer = modalButton("Fechar")
+        ))
+        
+      }, error = function(e){
+        remove_modal_spinner()
+        
+        showModal(modalDialog(
+          title = "PCDaS AI",
+          "Ocorreu um erro. Tente novamente.", br(),
+          footer = modalButton("Fechar")
+        ))
       })
     })
     
@@ -973,16 +1082,40 @@ function(input, output, session) {
       #browser()
       texto_resul <- plot_g2.3_descr_text()
       output$plot_g2.3_descr_ia <- renderUI({
+        tagList(
+          tags$html(markdown(texto_resul)),
+          actionButton("plot_g2.3_audio", label = "Ouvir áudio transcrição"),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+        )
+      })
+    })
+    
+    observeEvent(input$plot_g2.3_audio, {
+      show_modal_spinner()
+      texto_resul <- plot_g2.3_descr_text()
+      tryCatch({
+        
         audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
         get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
         
-        tagList(
-          tags$html(markdown(texto_resul)),
-          output$summary_audio <- renderUI(
-            tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
-          ),
-          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
-        )
+        remove_modal_spinner()
+        
+        showModal(modalDialog(
+          title = "PCDaS IA",
+          markdown(texto_resul),
+          tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autoplay = "0", controls = NA),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+          footer = modalButton("Fechar")
+        ))
+        
+      }, error = function(e){
+        remove_modal_spinner()
+        
+        showModal(modalDialog(
+          title = "PCDaS AI",
+          "Ocorreu um erro. Tente novamente.", br(),
+          footer = modalButton("Fechar")
+        ))
       })
     })
     
