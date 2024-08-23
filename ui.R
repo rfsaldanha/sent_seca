@@ -5,7 +5,11 @@ library(shinybusy)
 #setwd("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/")
 load("dados_sent_seca.RData");
 
-navbarPage("Observatório de Clima e Saúde", id="nav",
+navbarPage(title = div(img(src='selo_obs_h.png',
+                           style="margin-top: -14px;
+                               padding-right:10px;
+                               padding-bottom:10px",
+                           height = 60)), id="nav",
   tags$body(includeScript("libras.js")),
   tabPanel("Mapa",
     # Spinner for map load
@@ -38,10 +42,21 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
 #            'cod_ano', 'Ano', choices = c(2001:2015),
 #            selectize = T
 #          )
-          selectInput("cod_ano", label = "Ano",
-                      choices = c(2001:2015), selected = TRUE, multiple = FALSE), 
-          selectInput(inputId="cod_mes", label="Mês", choices = c(1:12), selected = TRUE, multiple = FALSE
-                      ), width = '100%'
+
+            fluidRow(
+              column(
+                width = 6,
+                selectInput("cod_ano", label = "Ano",
+                            choices = c(2001:2015), selected = TRUE, multiple = FALSE), 
+              ),
+              column(
+                width = 6,
+                selectInput(inputId="cod_mes", label="Mês", choices = c(1:12), selected = TRUE, multiple = FALSE
+                ), 
+              )
+            ),
+          
+          width = '100%'
           
           ), 
 
