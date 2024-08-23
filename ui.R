@@ -117,9 +117,7 @@ tabPanel("Gráfico segundo ano",
              
              # Output: Header + summary of distribution ----
              h4("Resumo: Variável no ano"),
-             verbatimTextOutput("summary_ai"),
-             verbatimTextOutput("summary"),
-             uiOutput("summary_audio"),
+             uiOutput("plot_g1_descr_ia"),
              
              # Output: Header + table of distribution ----
              h4("Observações"),
@@ -131,27 +129,25 @@ tabPanel("Gráfico segundo ano",
   tabPanel("Séries e Tendências",
      # Spinner for map load
      add_busy_spinner(spin = "semipolar", margins = c(20,30)),
-     # App title ----
-     titlePanel("Saúde"),
      
-       h4("Precipitação média acumulada"),
-       dygraphs::dygraphOutput("plot_g2.1"),
-       # AI generated text
-       HTML("<BR>"),
-       uiOutput("plot_g2.1_descr_ia"),
-       HTML("<BR><BR>"),
-       h4("Condição da vegetação (NDVI)"),
-       dygraphs::dygraphOutput("plot_g2.2"),
-       # AI generated text
-       HTML("<BR>"), 
-       uiOutput("plot_g2.2_descr_ia"),
-       HTML("<BR><BR>"),
-       h4("Indicador de saúde",  verbatimTextOutput("dataset")),
-       dygraphs::dygraphOutput("plot_g2.3"),
-       # AI generated text
-       HTML("<BR>"),  
-       uiOutput("plot_g2.3_descr_ia"),
-       HTML("<BR><BR>"),
+     h4("Precipitação média acumulada"),
+     dygraphs::dygraphOutput("plot_g2.1"),
+     # AI generated text
+     HTML("<BR>"),
+     uiOutput("plot_g2.1_descr_ia"),
+     HTML("<BR><BR>"),
+     h4("Condição da vegetação (NDVI)"),
+     dygraphs::dygraphOutput("plot_g2.2"),
+     # AI generated text
+     HTML("<BR>"), 
+     uiOutput("plot_g2.2_descr_ia"),
+     HTML("<BR><BR>"),
+     h4("Indicador de saúde",  verbatimTextOutput("dataset")),
+     dygraphs::dygraphOutput("plot_g2.3"),
+     # AI generated text
+     HTML("<BR>"),  
+     uiOutput("plot_g2.3_descr_ia"),
+     HTML("<BR><BR>"),
    )
 )
 

@@ -301,23 +301,16 @@ function(input, output, session) {
       output$plot_g1 <- renderDygraph({
         
         dataset <- datasetInput();
-
+        
         if(is.null(var_munic_sel)|is.null(dataset)){
           return()
         }
         
-        precipitação<-ts(data = as.numeric(tab1[tab1$cod6==var_munic_sel,
-                                                as.character(c(paste0(input$cod_ano,"01"):paste0(input$cod_ano,"12")))]), 
-                         start = c(as.numeric(input$cod_ano),01), end = c(as.numeric(input$cod_ano),12), frequency = 12);#warning(call. = T);
-        
-        Saúde <- ts(data = dataset$valor[dataset$cod_munic==var_munic_sel],
-                    start = c(as.numeric(input$cod_ano),01), end = c(as.numeric(input$cod_ano),12), frequency = 12);#warning("Não existe dado para faixa etária selecionada...");
-        
         dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&substr(tab6$dt_portaria,1,4)==as.character(input$cod_ano)&!is.na(tab6$dt_portaria)];
-
-        lungDeaths <- cbind(precipitação, Saúde);
         
-        g1<-dygraph(lungDeaths) %>%
+        plot_data <- plot_g1_data();
+        
+        g1<-dygraph(plot_data) %>%
           dyAxis("y", label = "Precipitação") %>%
           dyAxis("y2", label = "Taxa") %>%
           dySeries("precipitação", label = "Precipitação",color = "rgb(35, 34, 131)", axis = 'y') %>%
@@ -449,19 +442,11 @@ function(input, output, session) {
         return()
       }
 
-      precipitação<-ts(data = as.numeric(tab1[tab1$cod6==var_munic_sel,
-                                              as.character(paste0(input$cod_ano,"01"):paste0(input$cod_ano,"12"))]), 
-                       start = c(as.numeric(input$cod_ano),01), end = c(as.numeric(input$cod_ano),12), frequency = 12);#warning(call. = T);
-      
-
-      Saúde <- ts(data = dataset$valor[dataset$cod_munic==var_munic_sel],
-                  start = c(as.numeric(input$cod_ano),01), end = c(as.numeric(input$cod_ano),12), frequency = 12);#warning("Não existe dado para faixa etária selecionada...");
-      
       dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&substr(tab6$dt_portaria,1,4)==as.character(input$cod_ano)&!is.na(tab6$dt_portaria)];
       
-      lungDeaths <- cbind(precipitação, Saúde);
+      plot_data <- plot_g1_data();
       
-      g1<-dygraph(lungDeaths) %>%
+      g1<-dygraph(plot_data) %>%
         dyAxis("y", label = "Precipitação") %>%
         dyAxis("y2", label = "Taxa") %>%
         dySeries("precipitação", label = "Precipitação",color = "rgb(35, 34, 131)", axis = 'y') %>%
@@ -543,10 +528,10 @@ function(input, output, session) {
         dyOptions(fillAlpha = 0.3) %>%
         dyLimit(as.numeric(0.33), color = "red")%>%
         dyLimit(as.numeric(0.66), color = "green") %>%
-        dySeries("ndvi", label = "NDVI",color = "darkgreen",fillGraph = TRUE) %>%
+        dySeries("ndvi", label = "NDVI",color = "forestgreen",fillGraph = TRUE) %>%
         dySeries("trend", label = "Tendência (STL)",color = "green", strokePattern = "dotted",strokeWidth = 3) %>%
         #dySeries("p$fitted", label = "SARIMA",color = "darkgreen") %>%
-        dySeries(c("p$lower", "p$mean", "p$upper"), label = "Previsão (SARIMA)",color = "brown") %>%
+        dySeries(c("p$lower", "p$mean", "p$upper"), label = "Previsão (SARIMA)",color = "seagreen") %>%
         dyHighlight(highlightCircleSize = 5, 
                     highlightSeriesBackgroundAlpha = 0.4,
                     hideOnMouseOut = TRUE)
@@ -609,6 +594,31 @@ function(input, output, session) {
       
       return(g2);
     });
+    
+    plot_g1_data <- reactive({
+      
+      dataset <- datasetInput();
+      
+      if(is.null(var_munic_sel)|is.null(dataset)){
+        return()
+      }
+      
+      mes_i <- paste0(input$cod_ano,"01")
+      mes_f <- paste0(input$cod_ano,"12")
+      start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
+                 paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
+      end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
+               paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
+      
+      data <- tab1[tab1$cod6==var_munic_sel,as.character(c(mes_i:mes_f))]
+      precipitação<-ts(data = as.numeric(data), start = start, end = end, frequency = 12);
+      
+      data <- dataset[dataset$cod_munic==var_munic_sel,]
+      Saúde <- ts(data = as.numeric(data$valor), start = start, end = end, frequency = 12);
+      
+      plot_data <- cbind(precipitação, Saúde);
+      plot_data
+    })
     
     plot_g2.1_data <- reactive({
       if(is.null(var_munic_sel)){
@@ -697,6 +707,76 @@ function(input, output, session) {
       trend <- decomp$time.series[, "trend"]
       plot_data <- cbind(Saúde, trend)#,p$fitted
       plot_data
+    })
+    
+    plot_g1_descr_text <- reactive({
+      plot_data <- plot_g1_data()
+      
+      if(is.null(plot_data)) return()
+      
+      #ts to data.frame
+      df_ts <- data.frame(plot_data)
+      df_ts$date <- as.numeric(time(plot_data))
+      df_ts$date <- as.Date(paste0(floor(df_ts$date), "-", 
+                                   sprintf("%02d", 1+round((df_ts$date-floor(df_ts$date))*12)), "-01"))
+      #browser()
+      data_to_ai <- cbind(df_ts,
+                          as.data.frame(geo)[geo$cod6==var_munic_sel,c("cod6", "NOME_MUNIC", "SIGLA")])
+      data_to_ai[,1] <- round(data_to_ai[,1], 2)
+      data_to_ai[,2] <- round(data_to_ai[,2], 2)
+      data_to_ai <- format(data_to_ai, decimal.mark = ",", nsmall = 2)
+      #write.csv(data_to_ai,"data_to_ai.csv")
+      
+      #browser()
+      prompt<- paste0("Este arquivo csv contém dados de precipitação e de indicador de saúde relacionado a ",input$dataset)
+      prompt<- paste0(prompt," de um município na região semiárida brasileira em um determinado ano. A variável `NOME_MUNIC` contêm o nome do município. A variável `SIGLA` contém o nome do estado do município. A variável `precipitação` contém os valores de precipitação para o município ao longo dos meses contidos na variável `date`. A variável `Saúde` contém os valores do indicador de saúde para o município ao longo dos meses contidos na variável `date`. Escreva um parágrafo técnico em português do Brasil sobre os dados, incluindo informações sobre máximo, mínimo e média dos valores. Coloque em negrito os nomes dos municípios citados. Não mencione o nome do arquivo. Evite adjetivos como alarmante e preocupante.")
+      tryCatch({
+        res <- get_text_description(
+          df = data_to_ai, 
+          prompt = prompt,
+          pcdas_token = pcdas_token
+        )
+      }, error = function(e){
+        res <- ""
+      })
+      
+      t_cor<-NA;
+      try(expr = t_cor<-cor.test(x = df_ts$Saúde,y = df_ts$precipitação, method = c("spearman"), 
+                                 conf.level = 0.95), silent = T);
+      teste_l<-as.numeric(substr(t_cor$p.value,1,5))
+      
+      if(is.na(teste_l)){
+        texto_resul<-paste("");
+      }else{
+        texto_resul<-paste(" Pela correlação de Spearman",
+                           "com nível de confiança de 95%",
+                           "obtem-se uma correlação entre os dois indicadores de",
+                           substr(t_cor$estimate,1,5),"\ncom p-valor de",substr(t_cor$p.value,1,4),
+                           if(!teste_l <= 0.05){
+                             ", logo, sugere-se o descarte de uma correlação significativa." }
+                           else{
+                             paste(", logo, sugere-se que exista uma correlação significativa."
+                             )})
+      }
+      res <- paste0(res,texto_resul)
+      res
+    })
+    
+    observeEvent(plot_g1_descr_text(), {
+      #browser()
+      texto_resul <- plot_g1_descr_text()
+      output$plot_g1_descr_ia <- renderUI({
+        audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
+        get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
+        
+        tagList(
+          tags$html(markdown(texto_resul)),
+          output$summary_audio <- renderUI(
+            tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
+          ),
+          helpText("PCDaS IA")
+        )
+      })
     })
     
     # Plot description by AI
@@ -847,52 +927,6 @@ function(input, output, session) {
         )
       })
     })
-    
-    # Generate a summary of the dataset ----
-    dataset <- datasetInput();
-    if(is.null(var_munic_sel)|is.null(dataset)){
-      return()
-    }
-    chuva<-as.numeric(tab1[tab1$cod6==var_munic_sel,
-                           as.character(c(paste0(input$cod_ano,"01"):paste0(input$cod_ano,"12")))]);
-    agravo<-dataset$valor[dataset$cod_munic==var_munic_sel];
-    
-    t_cor<-NA;
-    try(expr = t_cor<-cor.test(x = agravo,y = chuva, method = c("spearman"), 
-                               conf.level = 0.95), silent = T);
-    teste_l<-as.numeric(substr(t_cor$p.value,1,5))
-    
-    if(is.na(teste_l)){
-      texto_resul<-paste("...");
-    }else{
-      texto_resul<-paste("Pela correlação de Spearman",
-                         "com nível de confiança de 95%",
-                         "obtem-se uma correlação de",
-                         substr(t_cor$estimate,1,5),"\ncom p-valor de",substr(t_cor$p.value,1,4),
-                         if(!teste_l <= 0.05){
-                           ", logo, sugere-se o descarte de uma correlação significativa." }
-                         else{
-                           paste(", logo, sugere-se que exista uma correlação significativa."
-                           )});
-    }
-    
-    output$summary <- renderPrint({
-      cat(texto_resul);
-    })#FIM SUMMARY
-    
-    ## Audio summary
-    observeEvent(req(datasetInput()), {
-      
-      message(texto_resul)
-      
-      audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
-      get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
-      
-      output$summary_audio <- renderUI(
-        tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
-      )
-    })
-    
     
     output$view <- renderTable({
       #head(datasetInput(), n = isolate(input$obs))
