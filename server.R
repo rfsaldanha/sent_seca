@@ -569,12 +569,14 @@ function(input, output, session) {
     });
     #saúde
     output$plot_g2.3<-renderDygraph({
-      dataset<-get(as.character(desc_tab$tab[desc_tab$nome==input$dataset]));
-      
-      if(is.null(var_munic_sel)|is.null(dataset)){
+      dataset_str <- as.character(desc_tab$tab[desc_tab$nome==input$dataset])
+      if(is.null(var_munic_sel)|length(dataset_str)==0){
         return()
       }
       options(digits=10)
+      
+      dataset <- get(dataset_str);
+      
       data <- dataset[dataset$cod_munic==var_munic_sel&dataset$fx_etaria==input$cod_idade,]
       plot_data <- plot_g2.3_data()
       dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&!is.na(tab6$dt_portaria)];
@@ -668,12 +670,14 @@ function(input, output, session) {
     })
     
     plot_g2.3_data <- reactive({
-      dataset<-get(as.character(desc_tab$tab[desc_tab$nome==input$dataset]));
       
-      if(is.null(var_munic_sel)|is.null(dataset)){
-        return()
+      dataset_str <- as.character(desc_tab$tab[desc_tab$nome==input$dataset])
+      if(is.null(var_munic_sel)|length(dataset_str)==0){
+        return(NULL)
       }
       options(digits=10)
+      
+      dataset <- get(dataset_str);
       
       data <- dataset[dataset$cod_munic==var_munic_sel&dataset$fx_etaria==input$cod_idade,]
       
@@ -728,9 +732,109 @@ function(input, output, session) {
     })
     
     observeEvent(plot_g2.1_descr_text(), {
-      browser()
+      #browser()
       texto_resul <- plot_g2.1_descr_text()
       output$plot_g2.1_descr_ia <- renderUI({
+        audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
+        get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
+        
+        tagList(
+          tags$html(markdown(texto_resul)),
+          output$summary_audio <- renderUI(
+            tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
+          ),
+          helpText("PCDaS IA")
+        )
+      })
+    })
+    
+    # Plot description by AI
+    plot_g2.2_descr_text <- reactive({
+      
+      plot_data <- plot_g2.2_data()
+      if(is.null(plot_data)) return()
+      #browser()
+      #ts to data.frame
+      df_ts <- data.frame(plot_data)
+      df_ts$date <- as.numeric(time(plot_data))
+      df_ts$date <- as.Date(paste0(floor(df_ts$date), "-", 
+                                   sprintf("%02d", 1+round((df_ts$date-floor(df_ts$date))*12)), "-01"))
+      
+      data_to_ai <- cbind(df_ts,
+                          as.data.frame(geo)[geo$cod6==var_munic_sel,c("cod6", "NOME_MUNIC", "SIGLA")])
+      data_to_ai[,1] <- round(data_to_ai[,1], 2)
+      data_to_ai[,2] <- round(data_to_ai[,2], 2)
+      data_to_ai <- format(data_to_ai, decimal.mark = ",", nsmall = 2)
+      #write.csv(data_to_ai,"data_to_ai.csv")
+      
+      tryCatch({
+        res <- get_text_description(
+          df = data_to_ai, 
+          prompt = "Este arquivo csv contém dados de NDVI de um município na região semiárida brasileira. O indicador de NDVI é um índice de estado da vegetação e indica a produção primária (produção de clorofila) e umidade local por meio de um indicador numérico obtido por sensoriamento remoto. A variável `NOME_MUNIC` contêm o nome do município. A variável `SIGLA` contém o nome do estado do município. A variável `ndvi` contém os valores de NDVI para o município ao longo dos meses contidos na variável `date`. A variável `trend` contém os valores de tendência obtidos pelo método de STL. As variáveis `p$mean` contém os valores de NDVI previstos para os próximos dois anos obtidos pelo modelo SARIMA. Escreva um parágrafo técnico em português do Brasil sobre os dados, incluindo informações sobre a sazonalidade, valores atípicos em determinados meses, máximo, mínimo e média dos valores de NDVI, tendência de longo-prazo crescente ou decrescente, assim como a previsão para os próximos anos, incluindo máximos. Mencione os métodos e modelos utilizados. Coloque em negrito os nomes dos municípios citados. Não mencione o nome do arquivo. Evite adjetivos como alarmante e preocupante.",
+          pcdas_token = pcdas_token
+        )
+      }, error = function(e){
+        res <- ""
+      })
+      
+      res
+    })
+    
+    observeEvent(plot_g2.2_descr_text(), {
+      #browser()
+      texto_resul <- plot_g2.2_descr_text()
+      output$plot_g2.2_descr_ia <- renderUI({
+        audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
+        get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
+        
+        tagList(
+          tags$html(markdown(texto_resul)),
+          output$summary_audio <- renderUI(
+            tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
+          ),
+          helpText("PCDaS IA")
+        )
+      })
+    })
+    
+    plot_g2.3_descr_text <- reactive({
+      plot_data <- plot_g2.3_data()
+      
+      if(is.null(plot_data)) return()
+      
+      #ts to data.frame
+      df_ts <- data.frame(plot_data)
+      df_ts$date <- as.numeric(time(plot_data))
+      df_ts$date <- as.Date(paste0(floor(df_ts$date), "-", 
+                                   sprintf("%02d", 1+round((df_ts$date-floor(df_ts$date))*12)), "-01"))
+      
+      data_to_ai <- cbind(df_ts,
+                          as.data.frame(geo)[geo$cod6==var_munic_sel,c("cod6", "NOME_MUNIC", "SIGLA")])
+      data_to_ai[,1] <- round(data_to_ai[,1], 2)
+      data_to_ai[,2] <- round(data_to_ai[,2], 2)
+      data_to_ai <- format(data_to_ai, decimal.mark = ",", nsmall = 2)
+      #write.csv(data_to_ai,"data_to_ai.csv")
+      
+      #browser()
+      prompt<- paste0("Este arquivo csv contém dados de indicador de saúde relacionado a ",input$dataset)
+      prompt<- paste0(prompt," de um município na região semiárida brasileira. A variável `NOME_MUNIC` contêm o nome do município. A variável `SIGLA` contém o nome do estado do município. A variável `Saúde` contém os valores do indicador de saúde para o município ao longo dos meses contidos na variável `date`. A variável `trend` contém os valores de tendência obtidos pelo método de STL. Escreva um parágrafo técnico em português do Brasil sobre os dados, incluindo informações sobre a sazonalidade, valores atípicos em determinados meses, máximo, mínimo e média dos valores do indicador de saúde, assim como tendência de longo-prazo crescente ou decrescente. Mencione os métodos utilizados. Coloque em negrito os nomes dos municípios citados. Não mencione o nome do arquivo. Evite adjetivos como alarmante e preocupante.")
+      tryCatch({
+        res <- get_text_description(
+          df = data_to_ai, 
+          prompt = prompt,
+          pcdas_token = pcdas_token
+        )
+      }, error = function(e){
+        res <- ""
+      })
+      
+      res
+    })
+    
+    observeEvent(plot_g2.3_descr_text(), {
+      #browser()
+      texto_resul <- plot_g2.3_descr_text()
+      output$plot_g2.3_descr_ia <- renderUI({
         audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
         get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
         

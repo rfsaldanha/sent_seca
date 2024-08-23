@@ -64,7 +64,8 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
     )
   ),
 tabPanel("Gráfico segundo ano",
-         
+         # Spinner for map load
+         add_busy_spinner(spin = "semipolar", margins = c(20,30)),
          # App title ----
          titlePanel("Saúde"),
          
@@ -128,68 +129,27 @@ tabPanel("Gráfico segundo ano",
          )
       ),
   tabPanel("Séries e Tendências",
+     # Spinner for map load
+     add_busy_spinner(spin = "semipolar", margins = c(20,30)),
      # App title ----
      titlePanel("Saúde"),
      
-     # Sidebar layout with input and output definitions ----
-     sidebarLayout(
-       
-       # Sidebar panel for inputs ----
-       sidebarPanel(
-         # Input: Select a dataset ----
-         selectInput("dataset", "Selecione um indicador:",
-                     choices = c("","Internação Diarréia e Gastroenterite Origem Infecção Presumível", 
-                                 "Taxa de internação por asma",
-                                 "Taxa de internação por dengue",
-                                 "Incidência de dengue clássico")),
-         
-         radioButtons("cod_idade", "Faixa etária",
-                      c("00 - 04 anos"=4, 
-                        "05 - 09 anos"=509,
-                        "10 - 19 anos"=1019,
-                        "20 - 64 anos"=2064,
-                        "65 - 99 anos"=6500)),
-         
-         selectInput('munic_sel_2', 'Consulte outro município', 
-                     c("",paste(geo$cod6,as.character(geo$NOME_MUNIC),'/', geo$SIGLA)), 
-                     selectize=T, selected = ""),
-         
-         # Input: Specify the number of observations to view ----
-         #numericInput("obs", "Número de observações para visualização em tabela:", 10),
-         
-         
-         # Include clarifying text ----
-         helpText("Nota: A seleção temporal do gráfico é realizada na",
-                  "aba 'Mapas'",
-                  ""),
-         # Input: actionButton() to defer the rendering of output ----
-         # until the user explicitly clicks the button (rather than
-         # doing it immediately when inputs change). This is useful if
-         # the computations required to render output are inordinately
-         # time-consuming.
-         actionButton("update", "Update View")
-       ),
-       
-       # Main panel for displaying outputs ----
-       mainPanel(
-         h4("Precipitação média acumulada"),
-         dygraphs::dygraphOutput("plot_g2.1"),
-         # AI generated text  
-         uiOutput("plot_g2.1_descr_ia"),
-         HTML("<BR><BR>"),
-         h4("Condição da vegetação (NDVI)"),
-         dygraphs::dygraphOutput("plot_g2.2"),
-         # AI generated text  
-         uiOutput("plot_g2.2_descr_ia"),
-         HTML("<BR><BR>"),
-         h4("Indicador de saúde",  verbatimTextOutput("dataset")),
-         dygraphs::dygraphOutput("plot_g2.3"),
-         # AI generated text  
-         uiOutput("plot_g2.3_descr_ia"),
-         HTML("<BR><BR>"),
-     )
-    )
-  )
+       h4("Precipitação média acumulada"),
+       dygraphs::dygraphOutput("plot_g2.1"),
+       # AI generated text  
+       uiOutput("plot_g2.1_descr_ia"),
+       HTML("<BR><BR>"),
+       h4("Condição da vegetação (NDVI)"),
+       dygraphs::dygraphOutput("plot_g2.2"),
+       # AI generated text  
+       uiOutput("plot_g2.2_descr_ia"),
+       HTML("<BR><BR>"),
+       h4("Indicador de saúde",  verbatimTextOutput("dataset")),
+       dygraphs::dygraphOutput("plot_g2.3"),
+       # AI generated text  
+       uiOutput("plot_g2.3_descr_ia"),
+       HTML("<BR><BR>"),
+   )
 )
 
 
