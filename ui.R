@@ -59,7 +59,7 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
       ),
 
       tags$div(id="cite",
-        'Dados compilados por: Observatório de clima e saúde', tags$em('lis/icict/fiocruz: 2017'), ''
+        'Painel desenvolvido por Observatório Clima e Saúde e PCDaS', tags$em('(Lis/Icict/Fiocruz)'), ''
       )
     )
   ),
