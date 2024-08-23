@@ -136,17 +136,20 @@ tabPanel("Gráfico segundo ano",
      
        h4("Precipitação média acumulada"),
        dygraphs::dygraphOutput("plot_g2.1"),
-       # AI generated text  
+       # AI generated text
+       HTML("<BR>"),
        uiOutput("plot_g2.1_descr_ia"),
        HTML("<BR><BR>"),
        h4("Condição da vegetação (NDVI)"),
        dygraphs::dygraphOutput("plot_g2.2"),
-       # AI generated text  
+       # AI generated text
+       HTML("<BR>"), 
        uiOutput("plot_g2.2_descr_ia"),
        HTML("<BR><BR>"),
        h4("Indicador de saúde",  verbatimTextOutput("dataset")),
        dygraphs::dygraphOutput("plot_g2.3"),
-       # AI generated text  
+       # AI generated text
+       HTML("<BR>"),  
        uiOutput("plot_g2.3_descr_ia"),
        HTML("<BR><BR>"),
    )
