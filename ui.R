@@ -7,7 +7,7 @@ load("dados_sent_seca.RData");
 
 navbarPage(title = div(img(src='selo_obs_h.png',
                            style="margin-top: -14px;
-                               padding-right:10px;
+                               padding-right:0px;
                                padding-bottom:10px",
                            height = 60)), id="nav",
   tags$body(includeScript("libras.js")),
@@ -64,10 +64,10 @@ navbarPage(title = div(img(src='selo_obs_h.png',
           uiOutput("map_descr_ia"),
 
           # h5("Município selecionado:", verbatimTextOutput("munic_sel")),
-          selectInput('munic_sel', '', 
-                      c("",paste(geo$cod6,as.character(geo$NOME_MUNIC),'/', geo$SIGLA)), 
-                      selectize=T),
-        
+          # selectInput('munic_sel', '', 
+          #             c("",paste(geo$cod6,as.character(geo$NOME_MUNIC),'/', geo$SIGLA)), 
+          #             selectize=T),
+          # 
           # Plots
           plotOutput("histCentile", height = 200),
           plotOutput("scatterCollegeIncome", height = 250)
@@ -78,7 +78,7 @@ navbarPage(title = div(img(src='selo_obs_h.png',
       )
     )
   ),
-tabPanel("Indicadores por Município",
+  tabPanel("Indicadores por Município",
          # Spinner for map load
          add_busy_spinner(spin = "semipolar", margins = c(20,30)),
          # App title ----
@@ -91,11 +91,11 @@ tabPanel("Indicadores por Município",
            sidebarPanel(
              # Input: Select a dataset ----
              selectInput("dataset", "Selecione um indicador:",
-                         choices = c("","Internação Diarréia e Gastroenterite Origem Infecção Presumível", 
+                         choices = c("Internação Diarréia e Gastroenterite Origem Infecção Presumível", 
                                      "Taxa de internação por asma",
                                      "Taxa de internação por dengue",
                                      "Incidência de dengue clássico"),
-                         selected = TRUE),
+                         selected = TRUE, multiple = FALSE),
              
              radioButtons("cod_idade", "Faixa etária",
                           c("00 - 04 anos"=4, 
@@ -121,13 +121,13 @@ tabPanel("Indicadores por Município",
              # doing it immediately when inputs change). This is useful if
              # the computations required to render output are inordinately
              # time-consuming.
-             actionButton("update", "Atualizar filtro")
+             #actionButton("update", "Atualizar filtro")
            ),
            
            # Main panel for displaying outputs ----
            mainPanel(
              h4("Município selecionado:", verbatimTextOutput("munic_sel_2")),#
-             #uiOutput("mun_selected"),
+             uiOutput("mun_selected"),
              
              dygraphs::dygraphOutput("plot_g1"),
              #verbatimTextOutput("info"),
@@ -148,7 +148,7 @@ tabPanel("Indicadores por Município",
      # Spinner for map load
      add_busy_spinner(spin = "semipolar", margins = c(20,30)),
      h4("Município selecionado:"),
-     #uiOutput("mun_selected"),
+     uiOutput("mun_selected_2"),
      HTML("<BR>"),
      h4("Precipitação média acumulada"),
      dygraphs::dygraphOutput("plot_g2.1"), 

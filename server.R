@@ -274,6 +274,21 @@ function(input, output, session) {
     isolate({
       var_munic_sel <- event$id;
       
+      selection <- geo[geo$cod6==var_munic_sel,]
+      selection <- paste(selection$cod6,as.character(selection$NOME_MUNIC),'/', selection$SIGLA)
+      updateSelectInput(session, "munic_sel", selected=selection)
+      updateSelectInput(session, "munic_sel_2", selected=selection)
+      output$mun_selected <- renderUI({
+        tagList(
+          tags$html(markdown(selection))
+        )
+      })
+      output$mun_selected_2 <- renderUI({
+        tagList(
+          tags$html(markdown(selection))
+        )
+      })
+      
       output$histCentile <- renderPlot({
         
         this_time<-paste0(input$cod_ano,ifelse(nchar(input$cod_mes)==1,paste0("0",input$cod_mes),input$cod_mes));
@@ -371,7 +386,14 @@ function(input, output, session) {
         #write.csv(data_to_ai,"data_to_ai.csv")
         
         #browser()
+        faixas <-c("4"="00 - 04 anos", 
+                   "509"="05 - 09 anos",
+                   "1019"="10 - 19 anos",
+                   "2064"="20 - 64 anos",
+                   "6500"="65 - 99 anos")
+        faixa <- faixas[as.character(input$cod_idade)]
         prompt<- paste0("Este arquivo csv contém dados de precipitação e de indicador de saúde relacionado a ",input$dataset)
+        prompt<- paste0(prompt," na faixa etária ",faixa)
         prompt<- paste0(prompt," de um município na região semiárida brasileira em um determinado ano. A variável `NOME_MUNIC` contêm o nome do município. A variável `SIGLA` contém o nome do estado do município. A variável `precipitação` contém os valores de precipitação para o município ao longo dos meses contidos na variável `date`. A variável `Saúde` contém os valores do indicador de saúde para o município ao longo dos meses contidos na variável `date`. Escreva um parágrafo técnico em português do Brasil sobre os dados, incluindo informações sobre máximo, mínimo e média dos valores. Coloque em negrito os nomes dos municípios citados. Não mencione o nome do arquivo. Evite adjetivos como alarmante e preocupante.")
         tryCatch({
           res <- get_text_description(
@@ -412,7 +434,7 @@ function(input, output, session) {
           tagList(
             tags$html(markdown(texto_resul)),
             actionButton("plot_g1_audio", label = "Ouvir áudio transcrição"),
-            tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+            tags$img(src = "image_IA_PCDaS.png", style = "width: 15%; padding: 0;"),
           )
         })
       })
@@ -484,28 +506,54 @@ function(input, output, session) {
   })
   
   #Entrada pela aba grafico com todos os elementos graficos
-  output$munic_sel_2 <- renderPrint({
+  output$munic_sel <- renderPrint({
+    output$histCentile <- renderPlot({
+      
+      this_time<-paste0(input$cod_ano,ifelse(nchar(input$cod_mes)==1,paste0("0",input$cod_mes),input$cod_mes));
+      
+      nm_meso<-as.character(df_map[df_map$cod6==var_munic_sel,"NOME_MICRO"]);
+      tmp<-df_map[df_map$NOME_MICRO==nm_meso,c("NOME_MUNIC","NOME_MICRO",paste0(this_time))];
+      
+      names(tmp)<-c("NOME_MUNIC","NOME_MICRO","valor");
+      tmp$seca<-"acima";
+      tmp$seca[tmp$valor<55.0]<-"abaixo";
+      p<-ggplot(tmp, 
+                aes(x = NOME_MUNIC, y = valor, label=NOME_MUNIC))+
+        labs(x = nm_meso, y = "") +
+        geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
+        scale_fill_manual(name=this_time, 
+                          labels = c("< 54 mm/mês", "> 54 mm/mês"), 
+                          values = c("acima"="#96D557", "abaixo"="#FA9E4F")) + 
+        labs(subtitle="") + 
+        coord_flip()+ theme_minimal() 
+      p        
+    });
+  });#//FIM 
+  
+  #Entrada pela aba grafico com todos os elementos graficos
+  observe({#output$munic_sel_2 <- renderPrint({
+    req(input$munic_sel_2)
     tmp<-NULL;
     #TESTO SE A VAriAVEL DE SELECAO VEIO DA ABA DE MAPAS OU ABA DE GRAFICOS
-    tmp1<-substr(as.character(input$munic_sel),1,6);
+    #tmp1<-substr(as.character(input$munic_sel),1,6);
     tmp2<-substr(as.character(input$munic_sel_2),1,6);
-    if(tmp1!=""&tmp2==""){
-      tmp<-tmp1;
-      cat(input$munic_sel);
-    }
-    if(tmp1==""&tmp2!=""){
-      tmp<-tmp2;
-      cat(input$munic_sel_2);
-    }
-    
-    if(tmp1!=""&tmp2!=""){
-      tmp<-tmp2;
-      cat(input$munic_sel_2);
-    }
-    
-    if(is.null(tmp)){
-      cat("...");
-    }
+    tmp<-tmp2;
+    # if(tmp1!=""&tmp2==""){
+    #   tmp<-tmp1;
+    #   cat(input$munic_sel);
+    # }
+    # if(tmp1==""&tmp2!=""){
+    #   tmp<-tmp2;
+    #   cat(input$munic_sel_2);
+    # }
+    # 
+    # if(tmp1!=""&tmp2!=""){
+    #   tmp<-tmp2;
+    #   cat(input$munic_sel_2);
+    # }
+    # if(is.null(tmp)){
+    #   cat("...");
+    # }
     
     var_munic_sel<-tmp;
     #print(var_munic_sel);
@@ -516,6 +564,28 @@ function(input, output, session) {
 
     ###Entrando pelo seletor
     #Grafico na aba
+    output$histCentile <- renderPlot({
+      
+      this_time<-paste0(input$cod_ano,ifelse(nchar(input$cod_mes)==1,paste0("0",input$cod_mes),input$cod_mes));
+      
+      nm_meso<-as.character(df_map[df_map$cod6==var_munic_sel,"NOME_MICRO"]);
+      tmp<-df_map[df_map$NOME_MICRO==nm_meso,c("NOME_MUNIC","NOME_MICRO",paste0(this_time))];
+      
+      names(tmp)<-c("NOME_MUNIC","NOME_MICRO","valor");
+      tmp$seca<-"acima";
+      tmp$seca[tmp$valor<55.0]<-"abaixo";
+      p<-ggplot(tmp, 
+                aes(x = NOME_MUNIC, y = valor, label=NOME_MUNIC))+
+        labs(x = nm_meso, y = "") +
+        geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
+        scale_fill_manual(name=this_time, 
+                          labels = c("< 54 mm/mês", "> 54 mm/mês"), 
+                          values = c("acima"="#96D557", "abaixo"="#FA9E4F")) + 
+        labs(subtitle="") + 
+        coord_flip()+ theme_minimal() 
+      p        
+    });
+    
     output$plot_g1 <- renderDygraph({
       
       dataset <- datasetInput();
@@ -649,12 +719,19 @@ function(input, output, session) {
       dt.decretos<-tab6$dt_portaria[tab6$cod6==var_munic_sel&!is.na(tab6$dt_portaria)];
       
       #browser()
+      faixas <-c("4"="00 - 04 anos", 
+      "509"="05 - 09 anos",
+      "1019"="10 - 19 anos",
+      "2064"="20 - 64 anos",
+      "6500"="65 - 99 anos")
+      label_saude <- paste0(input$dataset," (",faixas[as.character(input$cod_idade)],")")
       
       g2<-dygraph(plot_data, group = "Series&Trend") %>%
         dyAxis("y", label = "Taxa por 100 Mil", logscale = F) %>%
         dyAxis("x", valueRange = c(start, "2017-12-01")) %>%
         dyOptions(fillAlpha = 0.3) %>%
-        dySeries("Saúde", label = "Saúde",color = "rgb(213, 119, 86)",fillGraph = TRUE) %>%
+        dySeries("Saúde", label = label_saude, 
+                 color = "rgb(213, 119, 86)",fillGraph = TRUE) %>%
         dySeries("trend", label = "Tendência (STL)",color = "orange", strokePattern = "dotted",strokeWidth = 3) %>%
         dyHighlight(highlightCircleSize = 5, 
                     highlightSeriesBackgroundAlpha = 0.4,
@@ -671,7 +748,7 @@ function(input, output, session) {
         for (i in 1:length(out)){
           g2 <- g2 %>% dyAnnotation(out[i], 
                                     text=as.character(round(out_values[i],0)),
-                                    tooltip = "atípico", width = 30, series="Saúde")
+                                    tooltip = "atípico", width = 30, series=label_saude)
         }
       
       return(g2);
@@ -810,7 +887,14 @@ function(input, output, session) {
       #write.csv(data_to_ai,"data_to_ai.csv")
       
       #browser()
+      faixas <-c("4"="00 - 04 anos", 
+                 "509"="05 - 09 anos",
+                 "1019"="10 - 19 anos",
+                 "2064"="20 - 64 anos",
+                 "6500"="65 - 99 anos")
+      faixa <- faixas[as.character(input$cod_idade)]
       prompt<- paste0("Este arquivo csv contém dados de precipitação e de indicador de saúde relacionado a ",input$dataset)
+      prompt<- paste0(prompt," na faixa etária ",faixa)
       prompt<- paste0(prompt," de um município na região semiárida brasileira em um determinado ano. A variável `NOME_MUNIC` contêm o nome do município. A variável `SIGLA` contém o nome do estado do município. A variável `precipitação` contém os valores de precipitação para o município ao longo dos meses contidos na variável `date`. A variável `Saúde` contém os valores do indicador de saúde para o município ao longo dos meses contidos na variável `date`. Escreva um parágrafo técnico em português do Brasil sobre os dados, incluindo informações sobre máximo, mínimo e média dos valores. Coloque em negrito os nomes dos municípios citados. Não mencione o nome do arquivo. Evite adjetivos como alarmante e preocupante.")
       tryCatch({
         res <- get_text_description(
@@ -844,19 +928,6 @@ function(input, output, session) {
       res
     })
     
-    # observeEvent(plot_g1_descr_text(), {
-    #   
-    #   output$plot_g1_descr_ia <- renderUI({
-    #     tagList(
-    #       tags$html(markdown(texto_resul)),
-    #       output$summary_audio <- renderUI(
-    #         tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
-    #       ),
-    #       tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
-    #     )
-    #   })
-    # })
-    
     observeEvent(plot_g1_descr_text(), {
       #browser()
       texto_resul <- plot_g1_descr_text()
@@ -864,7 +935,7 @@ function(input, output, session) {
         tagList(
           tags$html(markdown(texto_resul)),
           actionButton("plot_g1_audio", label = "Ouvir áudio transcrição"),
-          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 15%; padding: 0;"),
         )
       })
     })
@@ -937,7 +1008,7 @@ function(input, output, session) {
         tagList(
           tags$html(markdown(texto_resul)),
           actionButton("plot_g2.1_audio", label = "Ouvir áudio transcrição"),
-          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;"),
         )
       })
     })
@@ -1010,7 +1081,7 @@ function(input, output, session) {
         tagList(
           tags$html(markdown(texto_resul)),
           actionButton("plot_g2.2_audio", label = "Ouvir áudio transcrição"),
-          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;"),
         )
       })
     })
@@ -1063,7 +1134,15 @@ function(input, output, session) {
       #write.csv(data_to_ai,"data_to_ai.csv")
       
       #browser()
+      
+      faixas <-c("4"="00 - 04 anos", 
+                 "509"="05 - 09 anos",
+                 "1019"="10 - 19 anos",
+                 "2064"="20 - 64 anos",
+                 "6500"="65 - 99 anos")
+      faixa <- faixas[as.character(input$cod_idade)]
       prompt<- paste0("Este arquivo csv contém dados de indicador de saúde relacionado a ",input$dataset)
+      prompt<- paste0(prompt," na faixa etária ",faixa)
       prompt<- paste0(prompt," de um município na região semiárida brasileira. A variável `NOME_MUNIC` contêm o nome do município. A variável `SIGLA` contém o nome do estado do município. A variável `Saúde` contém os valores do indicador de saúde para o município ao longo dos meses contidos na variável `date`. A variável `trend` contém os valores de tendência obtidos pelo método de STL. Escreva um parágrafo técnico em português do Brasil sobre os dados, incluindo informações sobre a sazonalidade, valores atípicos em determinados meses, máximo, mínimo e média dos valores do indicador de saúde, assim como tendência de longo-prazo crescente ou decrescente. Mencione os métodos utilizados. Coloque em negrito os nomes dos municípios citados. Não mencione o nome do arquivo. Evite adjetivos como alarmante e preocupante.")
       tryCatch({
         res <- get_text_description(
@@ -1085,7 +1164,7 @@ function(input, output, session) {
         tagList(
           tags$html(markdown(texto_resul)),
           actionButton("plot_g2.3_audio", label = "Ouvir áudio transcrição"),
-          tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;"),
         )
       })
     })
@@ -1135,8 +1214,6 @@ function(input, output, session) {
       
     })
     
-    
-    
     output$downloadData <- downloadHandler(
       filename = function() {
         paste("data-", Sys.Date(), ".csv", sep="")
@@ -1151,31 +1228,37 @@ function(input, output, session) {
         write.csv(p, file);
       }
     )
-  
-  
     
   });#//FIM 
   
   observeEvent(input$munic_sel, {
     updateSelectInput(session, "munic_sel_2", selected=input$munic_sel)
     output$mun_selected <- renderUI({
-      verbatimTextOutput(input$munic_sel)
       tagList(
         tags$html(markdown(input$munic_sel))
      )
    })
+    output$mun_selected_2 <- renderUI({
+      tagList(
+        tags$html(markdown(input$munic_sel))
+      )
+    })
   })
   observeEvent(input$munic_sel_2, {
    updateSelectInput(session, "munic_sel", selected=input$munic_sel_2)
    output$mun_selected <- renderUI({
-     verbatimTextOutput(input$munic_sel_2)
+     tagList(
+       tags$html(markdown(input$munic_sel_2))
+     )
+   })
+   output$mun_selected_2 <- renderUI({
      tagList(
        tags$html(markdown(input$munic_sel_2))
      )
    })
   })
   
-  datasetInput <- eventReactive(input$update, {
+  datasetInput <- eventReactive(input$update, { #reactive({
     
     switch(input$dataset,
            "Internação Diarréia e Gastroenterite Origem Infecção Presumível" = tab5[tab5$ano==as.character(input$cod_ano)&
