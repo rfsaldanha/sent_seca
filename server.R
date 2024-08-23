@@ -62,7 +62,7 @@ function(input, output, session) {
           # Cores paleta original
           # colors = c("#2C7BB6","#ABD9E9", "#FFFFBF", "#FDAE61", "#D7191C"),
           # Cores paleta PiYG
-          colors = c("#4DAC26","#B8E186", "#F7F7F7", "#F1B6DA", "#D01C8B"),
+          colors = c("#4DAC26","#B8E186", "#F7F7F7", "#F1B6DA", "#D7191C"),
           labels = c("muito úmido","úmido",
                      "seco","muito seco","extremamente seco"), opacity = 0.5,
           title = 'Precipitação média acumulada'
@@ -187,7 +187,8 @@ function(input, output, session) {
       tagList(
         tags$html(markdown(map_descr_text())),
         actionButton("map_descr_audio", label = "Ouvir áudio transcrição"),
-        helpText("PCDaS IA")
+        tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
+        #helpText("PCDaS IA")
       )
     })
   })
@@ -206,7 +207,7 @@ function(input, output, session) {
         title = "PCDaS IA",
         markdown(map_descr_text()),
         tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autoplay = NA, controls = NA),
-        # tags$img(src = "logo-principal-hires.png"),
+        tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
         footer = modalButton("Fechar")
       ))
       
@@ -235,9 +236,9 @@ function(input, output, session) {
          xlab = "mm/mês",
          ylab = "n",
          xlim = range(df_map[,this_time]),
-         col = '#00DD00',
+         col = '#4DAC26',
          border = 'white');
-    abline(v = 54, col = "red")
+    abline(v = 54, col = "#D7191C")
   })
   
   ##GRAFICO PIZZA
@@ -256,7 +257,7 @@ function(input, output, session) {
     
     bp<- ggplot(tmp, aes(x="", y=Freq, fill = Classe))+
       ggtitle(paste0("Proporção de municípios","\ncom precipitação inferior 54 mm/mês"))+
-      scale_fill_manual(values=c("#D7191C", "#ABD9E9"))+
+      scale_fill_manual(values=c("#4DAC26","#D7191C"))+
       geom_bar(width = 1, stat = "identity")
     
     
@@ -291,7 +292,7 @@ function(input, output, session) {
           geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
           scale_fill_manual(name=this_time, 
                             labels = c("< 54 mm/mês", "> 54 mm/mês"), 
-                            values = c("acima"="#00ba38", "abaixo"="#FDAE61")) + 
+                            values = c("acima"="#4DAC26", "abaixo"="#D7191C")) + 
           labs(subtitle="") + 
           coord_flip()+ theme_minimal() 
           p        
@@ -328,41 +329,100 @@ function(input, output, session) {
         return(g1);
       });
       
-      # Generate a summary of the dataset ----
-      output$summary <- renderPrint({
+      plot_g1_data <- reactive({
         
         dataset <- datasetInput();
+        
         if(is.null(var_munic_sel)|is.null(dataset)){
           return()
         }
         
-        chuva<-as.numeric(tab1[tab1$cod6==var_munic_sel,
-        as.character(c(paste0(input$cod_ano,"01"):paste0(input$cod_ano,"12")))]);
+        mes_i <- paste0(input$cod_ano,"01")
+        mes_f <- paste0(input$cod_ano,"12")
+        start <- c(paste(stringr::str_split(mes_i,"",simplify=TRUE)[1:4], collapse = ''),
+                   paste(stringr::str_split(mes_i,"",simplify=TRUE)[5:6], collapse = ''))
+        end <- c(paste(stringr::str_split(mes_f,"",simplify=TRUE)[1:4], collapse = ''),
+                 paste(stringr::str_split(mes_f,"",simplify=TRUE)[5:6], collapse = ''))
         
-        agravo<-dataset$valor[dataset$cod_munic==var_munic_sel];
-
+        data <- tab1[tab1$cod6==var_munic_sel,as.character(c(mes_i:mes_f))]
+        precipitação<-ts(data = as.numeric(data), start = start, end = end, frequency = 12);
+        
+        data <- dataset[dataset$cod_munic==var_munic_sel,]
+        Saúde <- ts(data = as.numeric(data$valor), start = start, end = end, frequency = 12);
+        
+        plot_data <- cbind(precipitação, Saúde);
+        plot_data
+      })
+      
+      plot_g1_descr_text <- reactive({
+        plot_data <- plot_g1_data()
+        
+        if(is.null(plot_data)) return()
+        
+        #ts to data.frame
+        df_ts <- data.frame(plot_data)
+        df_ts$date <- as.numeric(time(plot_data))
+        df_ts$date <- as.Date(paste0(floor(df_ts$date), "-", 
+                                     sprintf("%02d", 1+round((df_ts$date-floor(df_ts$date))*12)), "-01"))
+        #browser()
+        data_to_ai <- cbind(df_ts,
+                            as.data.frame(geo)[geo$cod6==var_munic_sel,c("cod6", "NOME_MUNIC", "SIGLA")])
+        data_to_ai[,1] <- round(data_to_ai[,1], 2)
+        data_to_ai[,2] <- round(data_to_ai[,2], 2)
+        data_to_ai <- format(data_to_ai, decimal.mark = ",", nsmall = 2)
+        #write.csv(data_to_ai,"data_to_ai.csv")
+        
+        #browser()
+        prompt<- paste0("Este arquivo csv contém dados de precipitação e de indicador de saúde relacionado a ",input$dataset)
+        prompt<- paste0(prompt," de um município na região semiárida brasileira em um determinado ano. A variável `NOME_MUNIC` contêm o nome do município. A variável `SIGLA` contém o nome do estado do município. A variável `precipitação` contém os valores de precipitação para o município ao longo dos meses contidos na variável `date`. A variável `Saúde` contém os valores do indicador de saúde para o município ao longo dos meses contidos na variável `date`. Escreva um parágrafo técnico em português do Brasil sobre os dados, incluindo informações sobre máximo, mínimo e média dos valores. Coloque em negrito os nomes dos municípios citados. Não mencione o nome do arquivo. Evite adjetivos como alarmante e preocupante.")
+        tryCatch({
+          res <- get_text_description(
+            df = data_to_ai, 
+            prompt = prompt,
+            pcdas_token = pcdas_token
+          )
+        }, error = function(e){
+          res <- ""
+        })
+        
         t_cor<-NA;
-        try(expr = t_cor<-cor.test(x = agravo,y = chuva, method = c("spearman"), 
-                        conf.level = 0.95), silent = T);
+        try(expr = t_cor<-cor.test(x = df_ts$Saúde,y = df_ts$precipitação, method = c("spearman"), 
+                                   conf.level = 0.95), silent = T);
         teste_l<-as.numeric(substr(t_cor$p.value,1,5))
-
+        
         if(is.na(teste_l)){
-          texto_resul<-paste("...");
+          texto_resul<-paste("");
         }else{
-        texto_resul<-paste("Pela correlação de Spearman",
-              "com nível de confiança de 95%",
-              "obtem-se uma correlação de",
-              substr(t_cor$estimate,1,5),"\ncom p-valor de",substr(t_cor$p.value,1,4),
-              if(!teste_l <= 0.05){
-                ", logo, sugeri-se o descarte de uma correlação significativa." }
-              else{
-                paste(", logo, sugeri-se que exista uma correlação significativa."
-                )});
-              }
-        
-        cat(texto_resul);
-        
-      })#FIM SUMMARY
+          texto_resul<-paste(" Pela correlação de Spearman",
+                             "com nível de confiança de 95%",
+                             "obtem-se uma correlação entre os dois indicadores de",
+                             substr(t_cor$estimate,1,5),"\ncom p-valor de",substr(t_cor$p.value,1,4),
+                             if(!teste_l <= 0.05){
+                               ", logo, sugere-se o descarte de uma correlação significativa." }
+                             else{
+                               paste(", logo, sugere-se que exista uma correlação significativa."
+                               )})
+        }
+        res <- paste0(res,texto_resul)
+        res
+      })
+      
+      observeEvent(plot_g1_descr_text(), {
+        #browser()
+        texto_resul <- plot_g1_descr_text()
+        output$plot_g1_descr_ia <- renderUI({
+          audio_summary_file <- tempfile(tmpdir = "www", fileext = ".mp3")
+          get_audio_description(text = texto_resul, dest_file = audio_summary_file, pcdas_token = pcdas_token)
+          
+          tagList(
+            tags$html(markdown(texto_resul)),
+            output$summary_audio <- renderUI(
+              tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA),
+              tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
+            ),
+          )
+        })
+      })
       
       
       output$view <- renderTable({
@@ -531,7 +591,7 @@ function(input, output, session) {
         dySeries("ndvi", label = "NDVI",color = "forestgreen",fillGraph = TRUE) %>%
         dySeries("trend", label = "Tendência (STL)",color = "green", strokePattern = "dotted",strokeWidth = 3) %>%
         #dySeries("p$fitted", label = "SARIMA",color = "darkgreen") %>%
-        dySeries(c("p$lower", "p$mean", "p$upper"), label = "Previsão (SARIMA)",color = "seagreen") %>%
+        dySeries(c("p$lower", "p$mean", "p$upper"), label = "Previsão (SARIMA)",color = "darkgoldenrod") %>%
         dyHighlight(highlightCircleSize = 5, 
                     highlightSeriesBackgroundAlpha = 0.4,
                     hideOnMouseOut = TRUE)
@@ -774,7 +834,7 @@ function(input, output, session) {
           output$summary_audio <- renderUI(
             tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
           ),
-          helpText("PCDaS IA")
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
         )
       })
     })
@@ -823,7 +883,7 @@ function(input, output, session) {
           output$summary_audio <- renderUI(
             tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
           ),
-          helpText("PCDaS IA")
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
         )
       })
     })
@@ -872,7 +932,7 @@ function(input, output, session) {
           output$summary_audio <- renderUI(
             tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
           ),
-          helpText("PCDaS IA")
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
         )
       })
     })
@@ -923,7 +983,7 @@ function(input, output, session) {
           output$summary_audio <- renderUI(
             tags$audio(src = basename(audio_summary_file), type = "audio/mp3", autostart = "0", controls = NA)
           ),
-          helpText("PCDaS IA")
+          tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;")
         )
       })
     })
@@ -965,6 +1025,24 @@ function(input, output, session) {
     
   });#//FIM 
   
+  observeEvent(input$munic_sel, {
+    updateSelectInput(session, "munic_sel_2", selected=input$munic_sel)
+    output$mun_selected <- renderUI({
+      verbatimTextOutput(input$munic_sel)
+      tagList(
+        tags$html(markdown(input$munic_sel))
+     )
+   })
+  })
+  observeEvent(input$munic_sel_2, {
+   updateSelectInput(session, "munic_sel", selected=input$munic_sel_2)
+   output$mun_selected <- renderUI({
+     verbatimTextOutput(input$munic_sel_2)
+     tagList(
+       tags$html(markdown(input$munic_sel_2))
+     )
+   })
+  })
   
   datasetInput <- eventReactive(input$update, {
     

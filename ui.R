@@ -25,7 +25,7 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
       absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
         draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
         width = 630, height = "auto",
-        h2("Saúde do Semiárido"),
+        h2("Precipitação e Cobertura Vegetal no Semiárido"),
         helpText("Nota: Selecione um município",
                  "para visualização na aba de gráfico."),
         sidebarPanel(
@@ -59,15 +59,15 @@ navbarPage("Observatório de Clima e Saúde", id="nav",
       ),
 
       tags$div(id="cite",
-        'Dados compilados por: Observatório de clima e saúde', tags$em('lis/icict/fiocruz: 2017'), ''
+        'Painel desenvolvido por Observatório Clima e Saúde e PCDaS  (Lis/Icict/Fiocruz)', tags$em('Lis/Icict/Fiocruz: 2024'), ''
       )
     )
   ),
-tabPanel("Gráfico segundo ano",
+tabPanel("Indicadores por Município",
          # Spinner for map load
          add_busy_spinner(spin = "semipolar", margins = c(20,30)),
          # App title ----
-         titlePanel("Saúde"),
+         titlePanel("Saúde no Semiárido"),
          
          # Sidebar layout with input and output definitions ----
          sidebarLayout(
@@ -105,22 +105,24 @@ tabPanel("Gráfico segundo ano",
              # doing it immediately when inputs change). This is useful if
              # the computations required to render output are inordinately
              # time-consuming.
-             actionButton("update", "Update View")
+             actionButton("update", "Atualizar filtro")
            ),
            
            # Main panel for displaying outputs ----
            mainPanel(
-             h4("Município selecionado:", verbatimTextOutput("munic_sel_2")),
+             h4("Município selecionado:", verbatimTextOutput("munic_sel_2")),#
+             #uiOutput("mun_selected"),
              
              dygraphs::dygraphOutput("plot_g1"),
              #verbatimTextOutput("info"),
              
              # Output: Header + summary of distribution ----
-             h4("Resumo: Variável no ano"),
+             HTML("<BR>"),
+             h5("Resumo:"),
              uiOutput("plot_g1_descr_ia"),
-             
+             HTML("<BR>"),
              # Output: Header + table of distribution ----
-             h4("Observações"),
+             h5("Dados:"),
              downloadButton('downloadData', 'Download'),
              tableOutput("view")
            )
@@ -129,23 +131,28 @@ tabPanel("Gráfico segundo ano",
   tabPanel("Séries e Tendências",
      # Spinner for map load
      add_busy_spinner(spin = "semipolar", margins = c(20,30)),
-     
+     h4("Município selecionado:"),
+     #uiOutput("mun_selected"),
+     HTML("<BR>"),
      h4("Precipitação média acumulada"),
-     dygraphs::dygraphOutput("plot_g2.1"),
+     dygraphs::dygraphOutput("plot_g2.1"), 
      # AI generated text
      HTML("<BR>"),
+     h5("Resumo:"),
      uiOutput("plot_g2.1_descr_ia"),
      HTML("<BR><BR>"),
      h4("Condição da vegetação (NDVI)"),
      dygraphs::dygraphOutput("plot_g2.2"),
      # AI generated text
      HTML("<BR>"), 
+     h5("Resumo:"),
      uiOutput("plot_g2.2_descr_ia"),
      HTML("<BR><BR>"),
      h4("Indicador de saúde",  verbatimTextOutput("dataset")),
      dygraphs::dygraphOutput("plot_g2.3"),
      # AI generated text
      HTML("<BR>"),  
+     h5("Resumo:"),
      uiOutput("plot_g2.3_descr_ia"),
      HTML("<BR><BR>"),
    )
