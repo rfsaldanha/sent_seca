@@ -34,10 +34,7 @@ navbarPage(title = div(img(src='selo_obs_h.png',
         draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
         width = 630, height = "auto",
         h2("Precipitação e Cobertura Vegetal no Semiárido"),
-        helpText("Nota: Selecione um município",
-                 "para visualização na aba de gráfico."),
         sidebarPanel(
-            selectInput("cod_map", label = "Índice da seca", choices = c("Precipitação")),
 #          selectInput(
 #            'cod_mes', 'Mês', choices = mes$desc,
 #            selectize = T
@@ -49,12 +46,16 @@ navbarPage(title = div(img(src='selo_obs_h.png',
 
             fluidRow(
               column(
-                width = 6,
+                width = 4,
+                selectInput("cod_map", label = "Índice da seca", choices = c("Precipitação")),
+              ),
+              column(
+                width = 4,
                 selectInput("cod_ano", label = "Ano",
                             choices = c(2001:2015), selected = TRUE, multiple = FALSE), 
               ),
               column(
-                width = 6,
+                width = 4,
                 selectInput(inputId="cod_mes", label="Mês", choices = c(1:12), selected = TRUE, multiple = FALSE
                 ), 
               )
@@ -74,7 +75,8 @@ navbarPage(title = div(img(src='selo_obs_h.png',
           # 
           # Plots
           plotOutput("histCentile", height = 200),
-          plotOutput("scatterCollegeIncome", height = 250)
+          plotOutput("scatterCollegeIncome", height = 250),
+          helpText("Nota: Selecione um município para visualização na aba de gráfico."),
       ),
 
       tags$div(id="cite",
