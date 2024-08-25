@@ -10,7 +10,11 @@ navbarPage(title = div(img(src='selo_obs_h.png',
                                padding-right:0px;
                                padding-bottom:10px",
                            height = 60)), id="nav",
-  tags$body(includeScript("libras.js")),
+  tags$body(
+    includeHTML("libras.html"),
+    tags$script(src = "https://vlibras.gov.br/app/vlibras-plugin.js"),
+    includeScript("libras.js")
+  ),
   tabPanel("Mapa",
     # Spinner for map load
     add_busy_spinner(spin = "semipolar", margins = c(20,30)),
