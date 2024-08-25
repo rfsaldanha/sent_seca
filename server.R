@@ -8,6 +8,8 @@ library(scales);
 library(dygraphs);
 library(rpcdas)
 library(shinybusy)
+library(forecast)
+library(stringr)
 #load("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/dados_sent_seca.RData");
 source("pcdas_token.R", local = TRUE)
 load("dados_sent_seca.RData")
