@@ -309,7 +309,7 @@ function(input, output, session) {
           geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
           scale_fill_manual(name=this_time, 
                             labels = c("< 54 mm/mês", "> 54 mm/mês"), 
-                            values = c("acima"="#96D557", "abaixo"="#FA9E4F")) + 
+                            values = c("abaixo"="#FA9E4F","acima"="#96D557")) + 
           labs(subtitle="") + 
           coord_flip()+ theme_minimal() 
           p        
