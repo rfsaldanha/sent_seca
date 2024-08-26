@@ -10,6 +10,8 @@ library(rpcdas)
 library(shinybusy)
 library(forecast)
 library(stringr)
+# remotes::install_github("JohnCoene/typedjs")
+library(typedjs)
 #load("/dados/htdocs/shiny.icict.fiocruz.br/sent_seca/dados_sent_seca.RData");
 source("pcdas_token.R", local = TRUE)
 load("dados_sent_seca.RData")
@@ -187,7 +189,7 @@ function(input, output, session) {
   observeEvent(map_descr_text(), {
     output$map_descr_ia <- renderUI({
       tagList(
-        tags$html(markdown(map_descr_text())),
+        tags$html(typedjs::typed(markdown(trimws(map_descr_text())), contentType = "html", showCursor = FALSE)),
         actionButton("map_descr_audio", label = "Ouvir áudio transcrição"),
         tags$img(src = "image_IA_PCDaS.png", style = "width: 20%; padding: 0;"),
       )

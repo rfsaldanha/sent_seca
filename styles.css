@@ -20,10 +20,6 @@ body, label, input, button, select {
 h1, h2, h3, h4 { font-size: 18px; font-weight: 400; text-align:justify;
 }
 
-p{
-  font-size:16px;
-}
-
 /* Position and style citation */
 #cite {
   position: absolute;
@@ -55,5 +51,3 @@ p{
   opacity: 0.95;
   transition-delay: 0;
 }
-
-
