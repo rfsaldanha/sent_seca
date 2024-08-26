@@ -307,11 +307,12 @@ function(input, output, session) {
           aes(x = NOME_MUNIC, y = valor, label=NOME_MUNIC))+
           labs(x = nm_meso, y = "") +
           geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
+          geom_hline(yintercept = 54) +
           scale_fill_manual(name=this_time, 
                             labels = c("< 54 mm/mês", "> 54 mm/mês"), 
                             values = c("abaixo"="#FA9E4F","acima"="#96D557")) + 
           labs(subtitle="") + 
-          coord_flip()+ theme_minimal() 
+          coord_flip() + theme_minimal() + theme(legend.position = "none")
           p        
       });
  
@@ -510,29 +511,29 @@ function(input, output, session) {
   })
   
   #Entrada pela aba grafico com todos os elementos graficos
-  output$munic_sel <- renderPrint({
-    output$histCentile <- renderPlot({
-      
-      this_time<-paste0(input$cod_ano,ifelse(nchar(input$cod_mes)==1,paste0("0",input$cod_mes),input$cod_mes));
-      
-      nm_meso<-as.character(df_map[df_map$cod6==var_munic_sel,"NOME_MICRO"]);
-      tmp<-df_map[df_map$NOME_MICRO==nm_meso,c("NOME_MUNIC","NOME_MICRO",paste0(this_time))];
-      
-      names(tmp)<-c("NOME_MUNIC","NOME_MICRO","valor");
-      tmp$seca<-"acima";
-      tmp$seca[tmp$valor<55.0]<-"abaixo";
-      p<-ggplot(tmp, 
-                aes(x = NOME_MUNIC, y = valor, label=NOME_MUNIC))+
-        labs(x = nm_meso, y = "") +
-        geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
-        scale_fill_manual(name=this_time, 
-                          labels = c("< 54 mm/mês", "> 54 mm/mês"), 
-                          values = c("acima"="#96D557", "abaixo"="#FA9E4F")) + 
-        labs(subtitle="") + 
-        coord_flip()+ theme_minimal() 
-      p        
-    });
-  });#//FIM 
+  # output$munic_sel <- renderPrint({
+  #   output$histCentile <- renderPlot({
+  #     
+  #     this_time<-paste0(input$cod_ano,ifelse(nchar(input$cod_mes)==1,paste0("0",input$cod_mes),input$cod_mes));
+  #     
+  #     nm_meso<-as.character(df_map[df_map$cod6==var_munic_sel,"NOME_MICRO"]);
+  #     tmp<-df_map[df_map$NOME_MICRO==nm_meso,c("NOME_MUNIC","NOME_MICRO",paste0(this_time))];
+  #     
+  #     names(tmp)<-c("NOME_MUNIC","NOME_MICRO","valor");
+  #     tmp$seca<-"acima";
+  #     tmp$seca[tmp$valor<55.0]<-"abaixo";
+  #     p<-ggplot(tmp, 
+  #               aes(x = NOME_MUNIC, y = valor, label=NOME_MUNIC))+
+  #       labs(x = nm_meso, y = "") +
+  #       geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
+  #       scale_fill_manual(name=this_time, 
+  #                         labels = c("< 54 mm/mês", "> 54 mm/mês"), 
+  #                         values = c("acima"="#96D557", "abaixo"="#FA9E4F")) + 
+  #       labs(subtitle="") + 
+  #       coord_flip()+ theme_minimal() 
+  #     p        
+  #   });
+  # });#//FIM 
   
   #Entrada pela aba grafico com todos os elementos graficos
   observe({#output$munic_sel_2 <- renderPrint({
@@ -568,27 +569,27 @@ function(input, output, session) {
 
     ###Entrando pelo seletor
     #Grafico na aba
-    output$histCentile <- renderPlot({
-      
-      this_time<-paste0(input$cod_ano,ifelse(nchar(input$cod_mes)==1,paste0("0",input$cod_mes),input$cod_mes));
-      
-      nm_meso<-as.character(df_map[df_map$cod6==var_munic_sel,"NOME_MICRO"]);
-      tmp<-df_map[df_map$NOME_MICRO==nm_meso,c("NOME_MUNIC","NOME_MICRO",paste0(this_time))];
-      
-      names(tmp)<-c("NOME_MUNIC","NOME_MICRO","valor");
-      tmp$seca<-"acima";
-      tmp$seca[tmp$valor<55.0]<-"abaixo";
-      p<-ggplot(tmp, 
-                aes(x = NOME_MUNIC, y = valor, label=NOME_MUNIC))+
-        labs(x = nm_meso, y = "") +
-        geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
-        scale_fill_manual(name=this_time, 
-                          labels = c("< 54 mm/mês", "> 54 mm/mês"), 
-                          values = c("acima"="#96D557", "abaixo"="#FA9E4F")) + 
-        labs(subtitle="") + 
-        coord_flip()+ theme_minimal() 
-      p        
-    });
+    # output$histCentile <- renderPlot({
+    #   
+    #   this_time<-paste0(input$cod_ano,ifelse(nchar(input$cod_mes)==1,paste0("0",input$cod_mes),input$cod_mes));
+    #   
+    #   nm_meso<-as.character(df_map[df_map$cod6==var_munic_sel,"NOME_MICRO"]);
+    #   tmp<-df_map[df_map$NOME_MICRO==nm_meso,c("NOME_MUNIC","NOME_MICRO",paste0(this_time))];
+    #   
+    #   names(tmp)<-c("NOME_MUNIC","NOME_MICRO","valor");
+    #   tmp$seca<-"acima";
+    #   tmp$seca[tmp$valor<55.0]<-"abaixo";
+    #   p<-ggplot(tmp, 
+    #             aes(x = NOME_MUNIC, y = valor, label=NOME_MUNIC))+
+    #     labs(x = nm_meso, y = "") +
+    #     geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
+    #     scale_fill_manual(name=this_time, 
+    #                       labels = c("< 54 mm/mês", "> 54 mm/mês"), 
+    #                       values = c("acima"="#96D557", "abaixo"="#FA9E4F")) + 
+    #     labs(subtitle="") + 
+    #     coord_flip()+ theme_minimal() 
+    #   p        
+    # });
     
     output$plot_g1 <- renderDygraph({
       
