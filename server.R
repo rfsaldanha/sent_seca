@@ -308,7 +308,7 @@ function(input, output, session) {
           labs(x = nm_meso, y = "") +
           geom_bar(stat="identity", aes(fill=tmp$seca),width=.5)+
           scale_fill_manual(name=this_time, 
-                            labels = c("< 54 mm/mês", "> 54 mm/mês"), 
+                            labels = c("> 54 mm/mês", "< 54 mm/mês"), 
                             values = c("acima"="#FA9E4F", "abaixo"="#96D557")) + 
           labs(subtitle="") + 
           coord_flip()+ theme_minimal() 
