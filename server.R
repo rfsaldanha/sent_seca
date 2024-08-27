@@ -437,7 +437,8 @@ function(input, output, session) {
         texto_resul <- plot_g1_descr_text()
         output$plot_g1_descr_ia <- renderUI({
           tagList(
-            tags$html(markdown(texto_resul)),
+            tags$html(typedjs::typed(markdown(trimws(texto_resul)), contentType = "html", showCursor = FALSE)),
+            
             actionButton("plot_g1_audio", label = "Ouvir áudio transcrição"),
             tags$img(src = "image_IA_PCDaS.png", style = "width: 15%; padding: 0;"),
           )
@@ -938,7 +939,7 @@ function(input, output, session) {
       texto_resul <- plot_g1_descr_text()
       output$plot_g1_descr_ia <- renderUI({
         tagList(
-          tags$html(markdown(texto_resul)),
+          tags$html(typedjs::typed(markdown(trimws(texto_resul)), contentType = "html", showCursor = FALSE)),
           actionButton("plot_g1_audio", label = "Ouvir áudio transcrição"),
           tags$img(src = "image_IA_PCDaS.png", style = "width: 15%; padding: 0;"),
         )
@@ -1011,7 +1012,7 @@ function(input, output, session) {
       texto_resul <- plot_g2.1_descr_text()
       output$plot_g2.1_descr_ia <- renderUI({
         tagList(
-          tags$html(markdown(texto_resul)),
+          tags$html(typedjs::typed(markdown(trimws(texto_resul)), contentType = "html", showCursor = FALSE)),
           actionButton("plot_g2.1_audio", label = "Ouvir áudio transcrição"),
           tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;"),
         )
@@ -1084,7 +1085,7 @@ function(input, output, session) {
       texto_resul <- plot_g2.2_descr_text()
       output$plot_g2.2_descr_ia <- renderUI({
         tagList(
-          tags$html(markdown(texto_resul)),
+          tags$html(typedjs::typed(markdown(trimws(texto_resul)), contentType = "html", showCursor = FALSE)),
           actionButton("plot_g2.2_audio", label = "Ouvir áudio transcrição"),
           tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;"),
         )
@@ -1167,7 +1168,7 @@ function(input, output, session) {
       texto_resul <- plot_g2.3_descr_text()
       output$plot_g2.3_descr_ia <- renderUI({
         tagList(
-          tags$html(markdown(texto_resul)),
+          tags$html(typedjs::typed(markdown(trimws(texto_resul)), contentType = "html", showCursor = FALSE)),
           actionButton("plot_g2.3_audio", label = "Ouvir áudio transcrição"),
           tags$img(src = "image_IA_PCDaS.png", style = "width: 10%; padding: 0;"),
         )
